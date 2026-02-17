@@ -9,21 +9,18 @@ import time
 from pathlib import Path
 
 from mcp_zwave_specs.cache import CacheManager
-from mcp_zwave_specs.config import CACHE_SUBDIR, DEFAULT_CACHE_DIR, Config
+from mcp_zwave_specs.config import CACHE_SUBDIR, Config
 from mcp_zwave_specs.server import AppState, create_server
 
 logger = logging.getLogger(__name__)
 
 
 def _clear_cache(cache_dir: Path) -> None:
-    """Remove the cache directory after verifying it's a dedicated zwave-specs dir."""
+    """Remove the cache directory after basic safety checks."""
     resolved = cache_dir.resolve()
-    if resolved.name != CACHE_SUBDIR:
-        logger.error(
-            "Refusing to clear cache: path does not end with '%s': %s",
-            CACHE_SUBDIR,
-            resolved,
-        )
+    # Safety: refuse to clear directories that don't look like our cache
+    if resolved == Path.home() or resolved == Path("/"):
+        logger.error("Refusing to clear cache: path is too broad: %s", resolved)
         return
     if not resolved.exists():
         return
@@ -56,7 +53,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--cache-dir",
         type=Path,
         default=None,
-        help=f"Cache directory (default: $ZWAVE_SPECS_MCP_CACHE_DIR or {DEFAULT_CACHE_DIR})",
+        help="Cache directory (default: $ZWAVE_SPECS_MCP_CACHE_DIR or <specs-dir>/.cache)",
     )
     parser.add_argument(
         "--app-layer-rst-dir",

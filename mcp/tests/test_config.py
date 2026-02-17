@@ -105,7 +105,7 @@ def test_merge_toml_cache_dir(tmp_path):
     toml_file.write_text('cache_dir = "/toml/cache"\n')
     config = Config(specs_dir=Path("/specs"))
     config.merge_toml(toml_file)
-    assert config.cache_dir == Path("/toml/cache/zwave-specs")
+    assert config.cache_dir == Path("/toml/cache/.cache")
 
 
 # --- app_layer_rst_dir ---

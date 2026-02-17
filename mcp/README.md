@@ -44,9 +44,12 @@ When configured, RST source is used for CC sections and chapter
 sections (device types, role types, CC control). All other spec
 documents still come from PDFs in `specs_dir`.
 
-**Note:** The server caches extracted data on disk and indexes it
-in memory at startup. If you modify spec files (PDFs, RST source,
-headers, or registries), restart the server to pick up the changes.
+**Note:** The server uses a content-addressable disk cache — each
+source file is cached under its own hash, and composite views are
+cached under the combined hash of their inputs. Changing a single
+PDF only re-extracts that file. Switching between spec versions
+(e.g. v4 vs v5 AWG) is instant once both are warm. If you modify
+spec files, restart the server to pick up the changes.
 
 ### Development Mode
 
@@ -76,7 +79,7 @@ directory is inside the specs checkout.
   "mcpServers": {
     "zwave-specs": {
       // Specs directory is auto-detected (two levels up from the package).
-      // Cache goes to ~/.cache/mcp/zwave-specs.
+      // Cache goes to <specs-dir>/.cache.
       // See "Defaults" under Configuration to see all built-in values.
       "command": "uv",
       "args": ["run", "--directory", "/path/to/specs/mcp", "zwave-specs-mcp"]
@@ -168,7 +171,7 @@ these built-in defaults:
 | Setting | Default |
 |---------|---------|
 | `specs_dir` | Auto-detected (two levels up from the package directory) |
-| `cache_dir` | `~/.cache/mcp/zwave-specs` (`zwave-specs` is appended automatically if missing) |
+| `cache_dir` | `<specs_dir>/.cache` (`.cache` is appended automatically if missing) |
 | `app_layer_rst_dir` | Not set (uses PDF by default) |
 | `app_layer_pdf` | `Z-Wave Specification AWG V5.0.pdf` |
 | `header_file` | `API_includes/ZW_classcmd.h` |
@@ -185,7 +188,7 @@ PDF groups (`supplementary_pdfs`, `test_pdfs`, `legacy_pdfs`,
 | Flag | Description |
 |------|-------------|
 | `--specs-dir PATH` | Path to zwave-js/specs checkout |
-| `--cache-dir PATH` | Cache directory (default: `~/.cache/mcp/zwave-specs`) |
+| `--cache-dir PATH` | Cache directory (default: `<specs-dir>/.cache`) |
 | `--app-layer-rst-dir PATH` | RST source directory for application layer spec (alternative to PDF) |
 | `--config PATH` | Path to TOML configuration file |
 | `--clear-cache` | Clear cache before starting |
@@ -199,7 +202,7 @@ optional; only specified values override the defaults.
 ```toml
 # Base directories
 specs_dir = "~/projects/specs"
-cache_dir = "~/.cache/mcp"  # zwave-specs/ is appended automatically
+cache_dir = "/custom/cache/path"  # .cache/ is appended automatically
 
 # RST source directory (alternative to app layer PDF)
 # app_layer_rst_dir = "~/projects/rst-source/source"
@@ -469,14 +472,19 @@ Search Z-Wave C header constants (`#define` values).
 
 #### `get_command_class(name="Dor Lok")`
 
-Fuzzy-matches to "Door Lock":
+Fuzzy-matches to "Door Lock". Source attribution differs depending on
+whether the server is using PDF or RST input:
+
+**PDF source:**
 
 ```
 # Door Lock Command Class, v1-4
 - **CC ID**: 0x62
 - **Versions**: 1, 2, 3, 4
-- **Section**: 2.2.38
-- **Source**: https://github.com/zwave-js/specs/blob/master/Z-Wave%20...
+- **Section**: 2.2.38 (pages 524-558)
+- **Source**: PDF
+- **File**: /path/to/specs/Z-Wave Specification AWG V5.0.pdf
+- **GitHub**: https://github.com/zwave-js/specs/blob/master/Z-Wave%20Specification%20AWG%20V5.0.pdf
 - **Status**: Active
 
 ---
@@ -485,7 +493,27 @@ Door Lock Command Class, version 1-2
 =============================================
 
 The Door Lock Command Class is used to operate and configure a door lock device.
-... (2000+ more lines of full spec text)
+... (full spec text)
+```
+
+**RST source:**
+
+```
+# Door Lock Command Class, v1-4
+- **CC ID**: 0x62
+- **Versions**: 1, 2, 3, 4
+- **Section**: 2.2.38
+- **Source**: RST
+- **File**: /path/to/rst-source/source
+- **Status**: Active
+
+---
+
+Door Lock Command Class, version 1-2
+=============================================
+
+The Door Lock Command Class is used to operate and configure a door lock device.
+... (full spec text, higher fidelity from RST — no PDF extraction artifacts)
 ```
 
 #### `search_command_classes(query="thermostat setpoint", max_results=3)`
@@ -562,6 +590,8 @@ Source: `ZW_classcmd.h`
 
 #### `get_spec_section(pdf="network_layer")`
 
+Without `section` or `search`, returns a table of contents:
+
 ```
 # network_layer — Table of Contents
 
@@ -572,6 +602,20 @@ Source: `ZW_classcmd.h`
 - **10**: 4 Z-Wave Networking (pages 16-83)
 - **11**: 5 SmartStart (pages 84-102)
 ...
+```
+
+#### `get_spec_section(pdf="network_layer", section="SmartStart")`
+
+```
+# 5 SmartStart
+- Source: `network_layer`
+- **File**: /path/to/specs/Z-Wave Stack Specifications/Z-Wave and Z-Wave Long Range Network Layer Specification.pdf
+- **GitHub**: https://github.com/zwave-js/specs/blob/master/...
+- Pages: 84-102
+
+---
+
+(full section text)
 ```
 
 #### `get_device_class(generic="Switch Binary")`
@@ -613,6 +657,9 @@ Source: `ZW_classcmd.h`
 
 #### `get_device_type()`
 
+Lists all device type sections. When a name is provided,
+source attribution shows PDF or RST:
+
 ```
 # Device Types
 
@@ -625,18 +672,47 @@ Source: `ZW_classcmd.h`
 - **Controlling Device Types** (pages 1202-1204)
 ```
 
+#### `get_device_type(name="Thermostat")`
+
+**PDF source:**
+
+```
+# Thermostat HVAC
+- Source: PDF, Device Types
+- **File**: /path/to/specs/Z-Wave Specification AWG V5.0.pdf
+- **GitHub**: https://github.com/zwave-js/specs/blob/master/Z-Wave%20Specification%20AWG%20V5.0.pdf
+- Pages: 1195-1196
+
+---
+
+(full device type spec text)
+```
+
+**RST source:**
+
+```
+# Thermostat HVAC
+- Source: RST, Device Types
+- **File**: /path/to/rst-source/source
+- Pages: 1195-1196
+
+---
+
+(full device type spec text)
+```
+
 #### `search_application_notes()`
 
 ```
 # Z-Wave Application Notes
 
-- **`appnote_apl12955_z_wave_multi_channel_basics`**: Apl12955 Z Wave Multi Channel Basics
-- **`appnote_apl12957_z_wave_battery_support_basics`**: Apl12957 Z Wave Battery Support Basics
-- **`appnote_apl13031_z_wave_networking_basics`**: Apl13031 Z Wave Networking Basics
-- **`appnote_apl13084_z_wave_control_application_basics`**: Apl13084 Z Wave Control Application Basics
-- **`appnote_apl13128_z_wave_time_date_basics`**: Apl13128 Z Wave Time Date Basics
-- **`appnote_apl13475_z_wave_development_basics`**: Apl13475 Z Wave Development Basics
-- **`appnote_ins14259_z_wave_plus_v2_application_framework_sdk7`**: Ins14259 Z Wave Plus V2 ...
+- **`appnote_apl12955_z_wave_multi_channel_basics`**: Apl12955 Z Wave Multi Channel Basics (4 sections)
+- **`appnote_apl12957_z_wave_battery_support_basics`**: Apl12957 Z Wave Battery Support Basics (3 sections)
+- **`appnote_apl13031_z_wave_networking_basics`**: Apl13031 Z Wave Networking Basics (5 sections)
+- **`appnote_apl13084_z_wave_control_application_basics`**: Apl13084 Z Wave Control Application Basics (4 sections)
+- **`appnote_apl13128_z_wave_time_date_basics`**: Apl13128 Z Wave Time Date Basics (3 sections)
+- **`appnote_apl13475_z_wave_development_basics`**: Apl13475 Z Wave Development Basics (5 sections)
+...
 
 Use `get_spec_section(pdf=key)` to read a specific note.
 ```

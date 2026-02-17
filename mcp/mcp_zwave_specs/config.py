@@ -12,8 +12,7 @@ GITHUB_REPO = "zwave-js/specs"
 GITHUB_BRANCH = "master"
 GITHUB_BASE = f"https://github.com/{GITHUB_REPO}/blob/{GITHUB_BRANCH}"
 
-CACHE_SUBDIR = "zwave-specs"
-DEFAULT_CACHE_DIR = Path.home() / ".cache" / "mcp" / CACHE_SUBDIR
+CACHE_SUBDIR = ".cache"
 
 DEFAULT_SUPPLEMENTARY_PDFS: dict[str, str] = {
     "network_layer": "Z-Wave and Z-Wave Long Range Network Layer Specification.pdf",
@@ -60,7 +59,7 @@ DEFAULT_PATHS: dict[str, str] = {
 @dataclass
 class Config:
     specs_dir: Path
-    cache_dir: Path = field(default_factory=lambda: DEFAULT_CACHE_DIR)
+    cache_dir: Path = field(default=None)  # type: ignore[assignment]  # resolved in __post_init__
     github_base_url: str = GITHUB_BASE
     supplementary_pdfs: dict[str, str] = field(
         default_factory=lambda: dict(DEFAULT_SUPPLEMENTARY_PDFS)
@@ -72,11 +71,12 @@ class Config:
     app_layer_rst_dir: Path | None = None
 
     def __post_init__(self) -> None:
-        """Resolve paths and ensure cache_dir ends with the dedicated subdirectory."""
+        """Resolve paths and default cache_dir to specs_dir/.cache."""
         self.specs_dir = Path(self.specs_dir).expanduser().resolve()
-        self.cache_dir = Path(self.cache_dir).expanduser().resolve()
-        if self.cache_dir.name != CACHE_SUBDIR:
-            self.cache_dir = self.cache_dir / CACHE_SUBDIR
+        if self.cache_dir is None:
+            self.cache_dir = self.specs_dir / CACHE_SUBDIR
+        else:
+            self.cache_dir = Path(self.cache_dir).expanduser().resolve()
         if self.app_layer_rst_dir is not None:
             self.app_layer_rst_dir = Path(self.app_layer_rst_dir).expanduser().resolve()
 
@@ -151,13 +151,13 @@ class Config:
         # Default: specs repo root (two levels up from mcp_zwave_specs/ package directory)
         _pkg_dir = Path(__file__).resolve().parent  # mcp_zwave_specs/
         specs_dir = os.environ.get("ZWAVE_SPECS_MCP_SPECS_DIR", str(_pkg_dir.parent.parent))
-        cache_dir = os.environ.get("ZWAVE_SPECS_MCP_CACHE_DIR", str(DEFAULT_CACHE_DIR))
+        cache_dir_env = os.environ.get("ZWAVE_SPECS_MCP_CACHE_DIR")
 
         rst_dir = os.environ.get("ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR")
 
         config = cls(
             specs_dir=Path(specs_dir),
-            cache_dir=Path(cache_dir),
+            cache_dir=Path(cache_dir_env) if cache_dir_env else None,
             app_layer_rst_dir=Path(rst_dir) if rst_dir else None,
         )
 
