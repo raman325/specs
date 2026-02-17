@@ -519,7 +519,7 @@ def create_server(config: Config) -> FastMCP:
             include_deprecated: Include deprecated/obsoleted CCs (default: False)
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         state._ensure_app_layer()
@@ -533,7 +533,11 @@ def create_server(config: Config) -> FastMCP:
             cc = state.cc_sections[name]
             if category and cc.category != category:
                 continue
-            if not include_deprecated and cc.status in ("DEPRECATED", "OBSOLETED"):
+            if not include_deprecated and cc.status.upper() in (
+                "DEPRECATED",
+                "OBSOLETE",
+                "OBSOLETED",
+            ):
                 continue
             lines.append(
                 f"| {cc.name} | {cc.id_hex} | {cc.version_str} | {cc.status} | {cc.category} |"
@@ -554,7 +558,7 @@ def create_server(config: Config) -> FastMCP:
             cc_id: CC ID as integer (e.g., 98 for 0x62). Alternative to name.
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         cc = state.find_cc(name, cc_id)
@@ -582,7 +586,7 @@ def create_server(config: Config) -> FastMCP:
             max_results: Maximum results to return (default: 5)
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         state._ensure_app_layer()
@@ -938,7 +942,7 @@ def create_server(config: Config) -> FastMCP:
             name: Device type name (e.g., "Thermostat", "Sensor"). Omit to list all.
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         state._ensure_app_layer_chapters()
@@ -957,7 +961,7 @@ def create_server(config: Config) -> FastMCP:
             name: Role type name or abbreviation. Omit to list all.
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         state._ensure_app_layer_chapters()
@@ -976,7 +980,7 @@ def create_server(config: Config) -> FastMCP:
             name: CC name (e.g., "Door Lock", "Notification"). Omit to list all.
         """
         state = _get_state(ctx)
-        if not state.config.specs_available:
+        if not state.config.specs_available and not state.config.app_layer_rst_available:
             return CLONE_INSTRUCTIONS
 
         state._ensure_app_layer_chapters()

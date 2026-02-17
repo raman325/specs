@@ -44,6 +44,10 @@ When configured, RST source is used for CC sections and chapter
 sections (device types, role types, CC control). All other spec
 documents still come from PDFs in `specs_dir`.
 
+**Note:** The server caches extracted data on disk and indexes it
+in memory at startup. If you modify spec files (PDFs, RST source,
+headers, or registries), restart the server to pick up the changes.
+
 ### Development Mode
 
 To open the MCP Inspector test UI for interactive tool testing:
