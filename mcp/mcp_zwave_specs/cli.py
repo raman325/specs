@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 def _is_unsafe_cache_path(path: Path) -> bool:
     """Return True if deleting this path would be dangerous."""
-    # Must be at least 3 levels deep (e.g. /home/user/cache, not /tmp or /foo)
-    if len(path.parts) < 4:
+    # Never delete the filesystem root
+    if path == Path(path.anchor):
         return True
     # Must not be the home directory or an ancestor of it
     home = Path.home().resolve()
