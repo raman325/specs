@@ -533,9 +533,9 @@ def create_server(config: Config) -> FastMCP:
             cc = state.cc_sections[name]
             if category and cc.category != category:
                 continue
-            status = cc.status.upper()
+            status = cc.status.lower()
             if not include_deprecated and (
-                status.startswith("DEPRECAT") or status.startswith("OBSOLET")
+                status.startswith("deprecat") or status.startswith("obsolet")
             ):
                 continue
             lines.append(
