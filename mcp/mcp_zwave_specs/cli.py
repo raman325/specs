@@ -11,14 +11,21 @@ from mcp_zwave_specs.config import DEFAULT_CACHE_DIR, Config
 
 logger = logging.getLogger(__name__)
 
-# Refuse to delete these directories even if configured as cache_dir.
-_UNSAFE_CACHE_PATHS = {Path("/"), Path.home(), Path.home() / "Documents"}
+
+def _is_unsafe_cache_path(path: Path) -> bool:
+    """Return True if deleting this path would be dangerous."""
+    # Must be at least 3 levels deep (e.g. /home/user/cache, not /tmp or /foo)
+    if len(path.parts) < 4:
+        return True
+    # Must not be the home directory or an ancestor of it
+    home = Path.home().resolve()
+    return path == home or home.is_relative_to(path)
 
 
 def _clear_cache(cache_dir: Path) -> None:
     """Remove the cache directory with safety checks against dangerous paths."""
     resolved = cache_dir.resolve()
-    if resolved in _UNSAFE_CACHE_PATHS or resolved == Path.home():
+    if _is_unsafe_cache_path(resolved):
         logger.error("Refusing to delete unsafe cache path: %s", resolved)
         return
     if not resolved.exists():
