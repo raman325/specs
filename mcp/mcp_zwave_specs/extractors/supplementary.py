@@ -62,6 +62,18 @@ def _split_by_toc(
     return sections
 
 
+def _extract_pdf_safe(pdf_path: Path, key: str) -> list[SpecSection] | None:
+    """Extract and split a single PDF, returning None on failure."""
+    try:
+        pages = extract_pages(pdf_path)
+    except Exception:
+        logger.exception("Failed to extract PDF: %s", pdf_path)
+        return None
+    sections = _split_by_toc(pages, key)
+    logger.info("Split %s into %d sections", key, len(sections))
+    return sections
+
+
 def _extract_pdf_group(
     result: dict[str, list[SpecSection]],
     pdf_map: dict[str, str],
@@ -73,10 +85,9 @@ def _extract_pdf_group(
         if not pdf_path.exists():
             logger.warning("PDF not found: %s", pdf_path)
             continue
-        pages = extract_pages(pdf_path)
-        sections = _split_by_toc(pages, key)
-        result[key] = sections
-        logger.info("Split %s into %d sections", key, len(sections))
+        sections = _extract_pdf_safe(pdf_path, key)
+        if sections is not None:
+            result[key] = sections
 
 
 def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
@@ -99,9 +110,9 @@ def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
         / "Z-Wave Command Class Control Test Specification.pdf"
     )
     if cc_test_path.exists():
-        pages = extract_pages(cc_test_path)
-        sections = _split_by_toc(pages, "test_cc_control")
-        result["test_cc_control"] = sections
+        sections = _extract_pdf_safe(cc_test_path, "test_cc_control")
+        if sections is not None:
+            result["test_cc_control"] = sections
 
     # Z-Wave Plus v2 Device Type Test Spec
     zwp_test = config.specs_dir / "Z-Wave Plus v2 Specifications"
@@ -118,10 +129,9 @@ def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
         if not pdf_path.exists():
             logger.warning("PDF not found: %s", pdf_path)
             continue
-        pages = extract_pages(pdf_path)
-        sections = _split_by_toc(pages, key)
-        result[key] = sections
-        logger.info("Split %s into %d sections", key, len(sections))
+        sections = _extract_pdf_safe(pdf_path, key)
+        if sections is not None:
+            result[key] = sections
 
     # Legacy specification PDFs
     legacy_dir = config.specs_dir / "Legacy Specifications"
@@ -133,10 +143,9 @@ def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
     if smartstart_dir.is_dir():
         for pdf_path in sorted(smartstart_dir.glob("*.pdf")):
             key = "smartstart_" + pdf_path.stem.lower().replace(" ", "_").replace("-", "_")
-            pages = extract_pages(pdf_path)
-            sections = _split_by_toc(pages, key)
-            result[key] = sections
-            logger.info("Split %s into %d sections", key, len(sections))
+            sections = _extract_pdf_safe(pdf_path, key)
+            if sections is not None:
+                result[key] = sections
 
     # Application Notes (Z-Wave specific only)
     app_notes_dir = config.app_notes_dir
@@ -145,9 +154,8 @@ def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
             if not pdf_path.stem.startswith(("APL", "INS")):
                 continue
             key = "appnote_" + pdf_path.stem.lower().replace(" ", "_").replace("-", "_")
-            pages = extract_pages(pdf_path)
-            sections = _split_by_toc(pages, key)
-            result[key] = sections
-            logger.info("Split %s into %d sections", key, len(sections))
+            sections = _extract_pdf_safe(pdf_path, key)
+            if sections is not None:
+                result[key] = sections
 
     return result

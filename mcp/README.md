@@ -189,6 +189,7 @@ PDF groups (`supplementary_pdfs`, `test_pdfs`, `legacy_pdfs`,
 | `--app-layer-rst-dir PATH` | RST source directory for application layer spec (alternative to PDF) |
 | `--config PATH` | Path to TOML configuration file |
 | `--clear-cache` | Clear cache before starting |
+| `--build-cache` | Build/warm the cache and exit (does not start the server) |
 
 ### TOML Config File
 

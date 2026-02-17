@@ -123,13 +123,14 @@ def split_app_layer_sections(pages: list[PageChunk]) -> list[CommandClassInfo]:
         logger.warning("No CC sections found in application layer TOC")
         return []
 
+    total_pages = len(pages)
     sections: list[CommandClassInfo] = []
     section_counter: dict[str, int] = {}  # Per-category section counter
 
     for i, entry in enumerate(entries):
         start_page = entry.page_number
         # End at the next entry's page within the same category
-        end_page = start_page + 50  # fallback
+        end_page = total_pages  # fallback: rest of document
         for j in range(i + 1, len(entries)):
             if entries[j].category == entry.category:
                 end_page = entries[j].page_number

@@ -13,9 +13,14 @@ from fastmcp import Context, FastMCP
 from mcp_zwave_specs.cache import CacheManager
 from mcp_zwave_specs.config import DEFAULT_PATHS, Config
 from mcp_zwave_specs.extractors.app_layer import (
+    APP_LAYER_CHAPTERS,
     extract_app_layer_chapter_sections,
     group_cc_versions,
     split_app_layer_sections,
+)
+from mcp_zwave_specs.extractors.app_layer_rst import (
+    extract_app_layer_chapter_sections_rst,
+    split_app_layer_sections_rst,
 )
 from mcp_zwave_specs.extractors.header import (
     DeviceClass,
@@ -28,10 +33,13 @@ from mcp_zwave_specs.extractors.pdf import extract_pages
 from mcp_zwave_specs.extractors.registry import parse_cc_list, parse_registries
 from mcp_zwave_specs.extractors.supplementary import extract_supplementary
 from mcp_zwave_specs.models import (
+    CCCommand,
     CCHeaderData,
     CommandClassInfo,
     RegistryData,
     SpecSection,
+    StructDef,
+    StructField,
 )
 from mcp_zwave_specs.search import SearchIndex
 
@@ -67,6 +75,9 @@ class AppState:
     # Constants from all header files (keyed by header filename)
     header_constants: dict[str, list[HeaderConstant]] = field(default_factory=dict)
 
+    # Transient: shared PDF pages to avoid redundant extraction
+    _app_layer_pages: list | None = None
+
     _app_layer_loaded: bool = False
     _header_loaded: bool = False
     _registries_loaded: bool = False
@@ -101,10 +112,6 @@ class AppState:
 
         # Extract from RST source or PDF
         if self.config.app_layer_rst_available:
-            from mcp_zwave_specs.extractors.app_layer_rst import (
-                split_app_layer_sections_rst,
-            )
-
             logger.info("Extracting CC sections from RST source...")
             sections = split_app_layer_sections_rst(self.config.app_layer_rst_dir)
         else:
@@ -112,6 +119,7 @@ class AppState:
                 "Extracting CC sections from application layer PDF (this may take a moment)..."
             )
             pages = extract_pages(self.config.app_layer_pdf)
+            self._app_layer_pages = pages  # share with _ensure_app_layer_chapters
             sections = split_app_layer_sections(pages)
         self.cc_sections = group_cc_versions(sections)
 
@@ -164,8 +172,6 @@ class AppState:
         if self.cache.is_valid() and self.cache.has_category("header"):
             cached = self.cache.read_json("header_data.json")
             if cached:
-                from mcp_zwave_specs.models import CCCommand, StructDef, StructField
-
                 for name, data in cached.items():
                     commands = [CCCommand(**c) for c in data.get("commands", [])]
                     structs = [
@@ -342,19 +348,17 @@ class AppState:
 
         # Extract from RST source or PDF
         if self.config.app_layer_rst_available:
-            from mcp_zwave_specs.extractors.app_layer_rst import (
-                extract_app_layer_chapter_sections_rst,
-            )
-
             logger.info("Extracting chapter sections from RST source...")
             self.app_layer_chapters = extract_app_layer_chapter_sections_rst(
                 self.config.app_layer_rst_dir
             )
         else:
-            from mcp_zwave_specs.extractors.app_layer import APP_LAYER_CHAPTERS
-
             logger.info("Extracting application layer chapter sections...")
-            pages = extract_pages(self.config.app_layer_pdf)
+            # Reuse pages from _ensure_app_layer if available
+            if self._app_layer_pages is not None:
+                pages = self._app_layer_pages
+            else:
+                pages = extract_pages(self.config.app_layer_pdf)
             for chapter_title, key in APP_LAYER_CHAPTERS.items():
                 sections = extract_app_layer_chapter_sections(pages, chapter_title)
                 if sections:
@@ -421,6 +425,16 @@ class AppState:
         self.cache.write_json("header_constants.json", cache_data)
         self.cache.mark_category("header_constants")
         self.cache.mark_valid()
+
+    def build_all(self) -> None:
+        """Eagerly load all data categories (for cache warming)."""
+        self._ensure_header()
+        self._ensure_app_layer()
+        self._ensure_app_layer_chapters()
+        self._app_layer_pages = None  # free transient PDF pages
+        self._ensure_registries()
+        self._ensure_supplementary()
+        self._ensure_header_constants()
 
     def find_cc(self, name: str | None, cc_id: int | None) -> CommandClassInfo | None:
         """Find a CC by name or ID, with fuzzy matching."""

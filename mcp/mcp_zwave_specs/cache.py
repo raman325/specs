@@ -15,8 +15,15 @@ logger = logging.getLogger(__name__)
 CACHE_VERSION = 1
 
 
+_HASH_EXTENSIONS = frozenset({".pdf", ".xlsx", ".xls", ".h", ".rst"})
+_HASH_SKIP_DIRS = frozenset({".git", "__pycache__", ".venv", "node_modules"})
+
+
 def _compute_specs_hash(specs_dir: Path, extra_dirs: list[Path] | None = None) -> str:
     """Hash specs directory contents by file sizes and mtimes for invalidation.
+
+    Only hashes files with relevant extensions (.pdf, .xlsx, .h, .rst) and
+    skips common non-spec directories (.git, __pycache__, etc.).
 
     When extra_dirs are provided (e.g. an RST source directory), their contents
     are included in the hash so cache is invalidated when they change.
@@ -28,7 +35,9 @@ def _compute_specs_hash(specs_dir: Path, extra_dirs: list[Path] | None = None) -
             h.update(f"missing:{d}".encode())
             continue
         for p in sorted(d.rglob("*")):
-            if p.is_file():
+            if any(part in _HASH_SKIP_DIRS for part in p.parts):
+                continue
+            if p.is_file() and p.suffix.lower() in _HASH_EXTENSIONS:
                 stat = p.stat()
                 h.update(f"{p.relative_to(d)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
     return h.hexdigest()[:16]

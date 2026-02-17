@@ -5,9 +5,12 @@ from __future__ import annotations
 import argparse
 import logging
 import shutil
+import time
 from pathlib import Path
 
+from mcp_zwave_specs.cache import CacheManager
 from mcp_zwave_specs.config import CACHE_SUBDIR, DEFAULT_CACHE_DIR, Config
+from mcp_zwave_specs.server import AppState, create_server
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +69,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Clear the cache directory before starting",
     )
+    parser.add_argument(
+        "--build-cache",
+        action="store_true",
+        help="Build/warm the cache and exit (does not start the server)",
+    )
     return parser.parse_args(argv)
 
 
@@ -73,7 +81,12 @@ def build_config(args: argparse.Namespace) -> Config:
     """Build a Config with precedence: CLI flags > TOML file > env vars > defaults."""
     config = Config.from_env()
     if args.config is not None:
-        config.merge_toml(args.config)
+        if not args.config.exists():
+            raise SystemExit(f"Config file not found: {args.config}")
+        try:
+            config.merge_toml(args.config)
+        except Exception as exc:
+            raise SystemExit(f"Invalid config file {args.config}: {exc}") from exc
     if args.specs_dir is not None:
         config.specs_dir = args.specs_dir.expanduser().resolve()
     if args.cache_dir is not None:
@@ -86,15 +99,28 @@ def build_config(args: argparse.Namespace) -> Config:
     return config
 
 
+def _build_cache(config: Config) -> None:
+    """Eagerly load all data categories to warm the disk cache."""
+    start = time.monotonic()
+    cache = CacheManager(config)
+    state = AppState(config=config, cache=cache)
+    state.build_all()
+    elapsed = time.monotonic() - start
+    logger.info("Cache built in %.1fs: %s", elapsed, config.cache_dir)
+
+
 def main(argv: list[str] | None = None) -> None:
     """Entry point: parse args, build config, and run the MCP server."""
+    logging.basicConfig(level=logging.INFO)
     args = parse_args(argv)
     config = build_config(args)
 
     if args.clear_cache:
         _clear_cache(config.cache_dir)
 
-    from mcp_zwave_specs.server import create_server
+    if args.build_cache:
+        _build_cache(config)
+        return
 
     server = create_server(config)
     server.run()
