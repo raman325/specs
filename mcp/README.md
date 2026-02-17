@@ -384,7 +384,7 @@ Test specifications for certification compliance.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `pdf` | `str \| None` | Test spec key (e.g., `"test_phy"`, `"test_mac"`). Omit to list available. |
-| `search` | `str \| None` | Search text within a specific test spec |
+| `search` | `str \| None` | Search text. Searches within `pdf` if provided, otherwise searches across all test specs. |
 
 #### get_legacy_spec
 
@@ -393,8 +393,8 @@ Legacy Z-Wave specifications.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `pdf` | `str \| None` | Legacy spec key (e.g., `"legacy_500_app_guide"`). Omit to list available. |
-| `section` | `str \| None` | Section title to retrieve |
-| `search` | `str \| None` | Search text within the spec |
+| `section` | `str \| None` | Section title to retrieve (requires `pdf`) |
+| `search` | `str \| None` | Search text. Searches within `pdf` if provided, otherwise searches across all legacy specs. |
 
 ### Application Layer Chapter Tools
 
