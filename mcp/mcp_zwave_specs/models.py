@@ -21,10 +21,12 @@ class CommandClassInfo:
 
     @property
     def id_hex(self) -> str:
+        """CC ID as a hex string, e.g. '0x62'."""
         return f"0x{self.cc_id:02X}" if self.cc_id is not None else "unknown"
 
     @property
     def version_str(self) -> str:
+        """Human-readable version range, e.g. 'v1-4'."""
         if not self.versions:
             return ""
         if len(self.versions) == 1:
@@ -43,6 +45,7 @@ class CCCommand:
 
     @property
     def opcode_hex(self) -> str:
+        """Command opcode as a hex string, e.g. '0x01'."""
         return f"0x{self.opcode:02X}"
 
 
@@ -74,6 +77,7 @@ class CCHeaderData:
 
     @property
     def id_hex(self) -> str:
+        """CC ID as a hex string, e.g. '0x62'."""
         return f"0x{self.cc_id:02X}"
 
 

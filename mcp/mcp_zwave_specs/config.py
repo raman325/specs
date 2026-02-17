@@ -47,17 +47,12 @@ DEFAULT_PATHS: dict[str, str] = {
     "app_layer_pdf": "Z-Wave Specification AWG V5.0.pdf",
     "header_file": "API_includes/ZW_classcmd.h",
     "cc_list_xlsx": (
-        "Z-Wave Command Classes Specifications"
-        "/List of defined Z-Wave Command Classes.xlsx"
+        "Z-Wave Command Classes Specifications/List of defined Z-Wave Command Classes.xlsx"
     ),
     "network_layer_pdf": (
-        "Z-Wave Stack Specifications"
-        "/Z-Wave and Z-Wave Long Range Network Layer Specification.pdf"
+        "Z-Wave Stack Specifications/Z-Wave and Z-Wave Long Range Network Layer Specification.pdf"
     ),
-    "host_api_pdf": (
-        "Z-Wave Stack Specifications"
-        "/Z-Wave Host API Specification.pdf"
-    ),
+    "host_api_pdf": ("Z-Wave Stack Specifications/Z-Wave Host API Specification.pdf"),
 }
 
 
@@ -75,62 +70,73 @@ class Config:
     path_overrides: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        """Resolve specs_dir and cache_dir to absolute paths."""
         self.specs_dir = Path(self.specs_dir).resolve()
         self.cache_dir = Path(self.cache_dir).resolve()
 
     @property
     def specs_available(self) -> bool:
+        """Return True if the specs directory exists on disk."""
         return self.specs_dir.is_dir()
 
     @property
     def app_layer_pdf(self) -> Path:
+        """Absolute path to the application layer (AWG) PDF."""
         relative = self.path_overrides.get("app_layer_pdf", DEFAULT_PATHS["app_layer_pdf"])
         return self.specs_dir / relative
 
     @property
     def header_file(self) -> Path:
+        """Absolute path to ZW_classcmd.h."""
         relative = self.path_overrides.get("header_file", DEFAULT_PATHS["header_file"])
         return self.specs_dir / relative
 
     @property
     def registries_dir(self) -> Path:
+        """Absolute path to the Registries directory."""
         return self.specs_dir / "Registries"
 
     @property
     def cc_list_xlsx(self) -> Path:
+        """Absolute path to the CC list Excel file."""
         relative = self.path_overrides.get("cc_list_xlsx", DEFAULT_PATHS["cc_list_xlsx"])
         return self.specs_dir / relative
 
     @property
     def network_layer_pdf(self) -> Path:
-        relative = self.path_overrides.get(
-            "network_layer_pdf", DEFAULT_PATHS["network_layer_pdf"]
-        )
+        """Absolute path to the network layer spec PDF."""
+        relative = self.path_overrides.get("network_layer_pdf", DEFAULT_PATHS["network_layer_pdf"])
         return self.specs_dir / relative
 
     @property
     def host_api_pdf(self) -> Path:
+        """Absolute path to the host API spec PDF."""
         relative = self.path_overrides.get("host_api_pdf", DEFAULT_PATHS["host_api_pdf"])
         return self.specs_dir / relative
 
     @property
     def smartstart_dir(self) -> Path:
+        """Absolute path to the SmartStart Specifications directory."""
         return self.specs_dir / "SmartStart Specifications"
 
     @property
     def api_includes_dir(self) -> Path:
+        """Absolute path to the API_includes header directory."""
         return self.specs_dir / "API_includes"
 
     @property
     def app_notes_dir(self) -> Path:
+        """Absolute path to the Application Notes directory."""
         return self.specs_dir / "Application Notes"
 
     def github_url(self, relative_path: str) -> str:
+        """Build a GitHub URL for a file in the specs repository."""
         encoded = quote(relative_path, safe="/")
         return f"{self.github_base_url}/{encoded}"
 
     @classmethod
     def from_env(cls) -> Config:
+        """Build a Config from environment variables, merged with defaults."""
         # Default: specs repo root (two levels up from mcp_zwave_specs/ package directory)
         _pkg_dir = Path(__file__).resolve().parent  # mcp_zwave_specs/
         specs_dir = os.environ.get("ZWAVE_SPECS_MCP_SPECS_DIR", str(_pkg_dir.parent.parent))
@@ -152,7 +158,7 @@ class Config:
         for key, value in os.environ.items():
             if not key.startswith(prefix):
                 continue
-            suffix = key[len(prefix):]
+            suffix = key[len(prefix) :]
             if suffix in top_level:
                 continue
 

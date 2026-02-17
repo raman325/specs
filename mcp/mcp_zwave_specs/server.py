@@ -75,6 +75,7 @@ class AppState:
     _header_constants_loaded: bool = False
 
     def _ensure_app_layer(self) -> None:
+        """Load CC sections from cache or extract from the application layer PDF."""
         if self._app_layer_loaded:
             return
         self._app_layer_loaded = True
@@ -89,7 +90,9 @@ class AppState:
                 for name, data in cached.items():
                     self.cc_sections[name] = CommandClassInfo(**data)
                     # Load section content from individual files
-                    content = self.cache.read_text(f"app_layer_sections/{name.replace('/', '_')}.md")
+                    content = self.cache.read_text(
+                        f"app_layer_sections/{name.replace('/', '_')}.md"
+                    )
                     if content:
                         self.cc_sections[name].content = content
                 self._build_search_index()
@@ -97,7 +100,9 @@ class AppState:
                 return
 
         # Extract from PDF
-        logger.info("Extracting CC sections from application layer PDF (this may take a moment)...")
+        logger.info(
+            "Extracting CC sections from application layer PDF (this may take a moment)..."
+        )
         pages = extract_pages(self.config.app_layer_pdf)
         sections = split_app_layer_sections(pages)
         self.cc_sections = group_cc_versions(sections)
@@ -134,11 +139,13 @@ class AppState:
         logger.info("Extracted and cached %d CC sections", len(self.cc_sections))
 
     def _build_search_index(self) -> None:
+        """Rebuild the full-text search index from loaded CC sections."""
         self.search_index = SearchIndex()
         for name, cc in self.cc_sections.items():
             self.search_index.add(name, name, cc.content)
 
     def _ensure_header(self) -> None:
+        """Load CC header data and device classes from cache or ZW_classcmd.h."""
         if self._header_loaded:
             return
         self._header_loaded = True
@@ -221,6 +228,7 @@ class AppState:
         self.cache.mark_valid()
 
     def _ensure_registries(self) -> None:
+        """Load registry data from cache or parse Excel files."""
         if self._registries_loaded:
             return
         self._registries_loaded = True
@@ -259,6 +267,7 @@ class AppState:
         self.cache.mark_valid()
 
     def _ensure_supplementary(self) -> None:
+        """Load supplementary PDF sections from cache or extract from PDFs."""
         if self._supplementary_loaded:
             return
         self._supplementary_loaded = True
@@ -303,6 +312,7 @@ class AppState:
         self.cache.mark_valid()
 
     def _ensure_app_layer_chapters(self) -> None:
+        """Load application layer chapter sections from cache or PDF."""
         if self._app_layer_chapters_loaded:
             return
         self._app_layer_chapters_loaded = True
@@ -317,7 +327,9 @@ class AppState:
                     data = self.cache.read_json(f"app_layer_chapters/{key}.json")
                     if data:
                         self.app_layer_chapters[key] = [SpecSection(**s) for s in data]
-                logger.info("Loaded %d CC spec chapter groups from cache", len(self.app_layer_chapters))
+                logger.info(
+                    "Loaded %d CC spec chapter groups from cache", len(self.app_layer_chapters)
+                )
                 return
 
         # Extract from application layer PDF
@@ -353,6 +365,7 @@ class AppState:
         logger.info("Extracted %d CC spec chapter groups", len(self.app_layer_chapters))
 
     def _ensure_header_constants(self) -> None:
+        """Load header constants from cache or parse .h files."""
         if self._header_constants_loaded:
             return
         self._header_constants_loaded = True
@@ -446,6 +459,7 @@ def _get_state(ctx: Context) -> AppState:
 
 @asynccontextmanager
 async def lifespan(server: FastMCP) -> AsyncIterator[dict]:
+    """Initialize AppState and CacheManager for the server's lifetime."""
     config = server._app_config
     cache = CacheManager(config)
 
@@ -457,6 +471,7 @@ async def lifespan(server: FastMCP) -> AsyncIterator[dict]:
 
 
 def create_server(config: Config) -> FastMCP:
+    """Create and configure the FastMCP server with all Z-Wave tools."""
     mcp = FastMCP(
         "Z-Wave MCP",
         instructions="Query the Z-Wave specification — Command Classes, registries, and more",
@@ -933,7 +948,7 @@ def create_server(config: Config) -> FastMCP:
         ctx: Context,
         name: str | None = None,
     ) -> str:
-        """Get Command Class interview/control requirements from the application layer spec, Chapter 6.
+        """Get CC interview/control requirements from the application layer spec, Chapter 6.
 
         Describes how a controller should interview devices for each CC.
 

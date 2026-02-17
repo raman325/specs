@@ -33,11 +33,13 @@ class SearchIndex:
     """Word-based inverted index with TF-IDF scoring and phrase boosting."""
 
     def __init__(self) -> None:
+        """Initialize an empty search index."""
         self._docs: dict[str, _Document] = {}
         self._inverted: dict[str, set[str]] = defaultdict(set)  # word → doc keys
         self._doc_count = 0
 
     def add(self, key: str, title: str, text: str) -> None:
+        """Index a document by key, title, and full text."""
         words = _tokenize(text)
         freq: dict[str, int] = defaultdict(int)
         for w in words:
@@ -51,6 +53,7 @@ class SearchIndex:
             self._inverted[word].add(key)
 
     def search(self, query: str, max_results: int = 10) -> list[SearchResult]:
+        """Search for documents matching the query, ranked by TF-IDF with phrase boosting."""
         query_words = _tokenize(query)
         if not query_words:
             return []

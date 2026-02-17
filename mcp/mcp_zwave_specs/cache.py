@@ -35,21 +35,25 @@ class CacheManager:
     """
 
     def __init__(self, config: Config) -> None:
+        """Initialize with config; no directories are created until needed."""
         self.config = config
         self.cache_dir = config.cache_dir
         self._manifest: dict[str, Any] | None = None
 
     @property
     def manifest_path(self) -> Path:
+        """Path to the cache manifest file."""
         return self.cache_dir / "manifest.json"
 
     def ensure_dirs(self) -> None:
+        """Create the cache directory tree if it doesn't exist."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         (self.cache_dir / "app_layer_sections").mkdir(exist_ok=True)
         (self.cache_dir / "supplementary").mkdir(exist_ok=True)
         (self.cache_dir / "registries").mkdir(exist_ok=True)
 
     def _load_manifest(self) -> dict[str, Any]:
+        """Load the manifest from disk, or return an empty dict on first call."""
         if self._manifest is not None:
             return self._manifest
         if self.manifest_path.exists():
@@ -62,6 +66,7 @@ class CacheManager:
         return self._manifest
 
     def _save_manifest(self) -> None:
+        """Flush the in-memory manifest to disk."""
         self.ensure_dirs()
         self.manifest_path.write_text(json.dumps(self._manifest or {}, indent=2))
 
@@ -81,10 +86,12 @@ class CacheManager:
         self._save_manifest()
 
     def has_category(self, category: str) -> bool:
+        """Return True if the given data category has been cached."""
         manifest = self._load_manifest()
         return category in manifest.get("categories", {})
 
     def mark_category(self, category: str) -> None:
+        """Record that a data category has been fully cached."""
         manifest = self._load_manifest()
         manifest.setdefault("categories", {})[category] = True
         self._save_manifest()
@@ -92,6 +99,7 @@ class CacheManager:
     # --- JSON read/write helpers ---
 
     def read_json(self, relative_path: str) -> Any | None:
+        """Read and deserialize a JSON cache file, or return None on miss."""
         path = self.cache_dir / relative_path
         if not path.exists():
             return None
@@ -102,12 +110,14 @@ class CacheManager:
             return None
 
     def write_json(self, relative_path: str, data: Any) -> None:
+        """Serialize data as JSON and write to a cache file."""
         self.ensure_dirs()
         path = self.cache_dir / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
     def read_text(self, relative_path: str) -> str | None:
+        """Read a text cache file, or return None on miss."""
         path = self.cache_dir / relative_path
         if not path.exists():
             return None
@@ -117,6 +127,7 @@ class CacheManager:
             return None
 
     def write_text(self, relative_path: str, text: str) -> None:
+        """Write a string to a text cache file."""
         self.ensure_dirs()
         path = self.cache_dir / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)

@@ -10,6 +10,7 @@ from mcp_zwave_specs.config import DEFAULT_CACHE_DIR, Config
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse CLI arguments for the MCP server."""
     parser = argparse.ArgumentParser(
         prog="zwave-specs-mcp",
         description="MCP server for querying the Z-Wave specification",
@@ -24,7 +25,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--specs-dir",
         type=Path,
         default=None,
-        help="Path to zwave-js/specs checkout (default: $ZWAVE_SPECS_MCP_SPECS_DIR or auto-detected from package location)",
+        help=(
+            "Path to zwave-js/specs checkout"
+            " (default: $ZWAVE_SPECS_MCP_SPECS_DIR or auto-detected from package location)"
+        ),
     )
     parser.add_argument(
         "--cache-dir",
@@ -53,6 +57,7 @@ def build_config(args: argparse.Namespace) -> Config:
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Entry point: parse args, build config, and run the MCP server."""
     args = parse_args(argv)
     config = build_config(args)
 
