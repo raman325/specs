@@ -30,11 +30,134 @@ If the `mcp/` directory lives inside the specs checkout (the default
 layout of this repository), the specs directory is auto-detected and
 `--specs-dir` can be omitted.
 
+### Development Mode
+
+To open the MCP Inspector test UI for interactive tool testing:
+
+```bash
+uv run fastmcp dev mcp_zwave_specs/server.py
+```
+
+This launches a browser-based UI where you can call each tool, inspect
+parameters, and see responses.
+
+### Client Configuration
+
+Example MCP server entries for AI coding tools. Each example
+demonstrates a different configuration method -- see
+[Configuration](#configuration) for details.
+
+#### Claude Code (defaults)
+
+In `.mcp.json` (project) or `~/.claude.json` (global). Uses
+[built-in defaults](#defaults) -- no extra flags needed when the `mcp/`
+directory is inside the specs checkout.
+
+```jsonc
+{
+  "mcpServers": {
+    "zwave-specs": {
+      // Specs directory is auto-detected (two levels up from the package).
+      // Cache goes to ~/.cache/mcp/zwave-specs.
+      // See "Defaults" under Configuration to see all built-in values.
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/specs/mcp", "zwave-specs-mcp"]
+    }
+  }
+}
+```
+
+#### GitHub Copilot (environment variables)
+
+In `.vscode/mcp.json`. Overrides settings via `ZWAVE_SPECS_MCP_*`
+environment variables -- see
+[Environment Variables](#environment-variables) for the full list.
+
+```jsonc
+{
+  "servers": {
+    "zwave-specs": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/specs/mcp", "zwave-specs-mcp"],
+      "env": {
+        // Override the specs checkout location
+        "ZWAVE_SPECS_MCP_SPECS_DIR": "/custom/path/to/specs",
+        // Override the cache directory
+        "ZWAVE_SPECS_MCP_CACHE_DIR": "/tmp/zwave-cache"
+      }
+    }
+  }
+}
+```
+
+#### Gemini CLI (CLI flags)
+
+In `~/.gemini/settings.json`. Passes flags directly as CLI arguments --
+see [CLI Flags](#cli-flags) for all options.
+
+```jsonc
+{
+  "mcpServers": {
+    "zwave-specs": {
+      "command": "uv",
+      "args": [
+        "run", "--directory", "/path/to/specs/mcp",
+        "zwave-specs-mcp",
+        // Point to a specs checkout in a non-standard location
+        "--specs-dir", "/custom/path/to/specs",
+        // Rebuild the cache on startup
+        "--clear-cache"
+      ]
+    }
+  }
+}
+```
+
+#### OpenAI Codex CLI (TOML config file)
+
+In `~/.codex/config.json`. Points to a TOML file for detailed overrides
+-- see [TOML Config File](#toml-config-file) for the full format.
+
+```jsonc
+{
+  "mcpServers": {
+    "zwave-specs": {
+      "command": "uv",
+      "args": [
+        "run", "--directory", "/path/to/specs/mcp",
+        "zwave-specs-mcp",
+        // All settings in one file -- individual paths, PDF groups, etc.
+        "--config", "/path/to/zwave-specs-mcp.toml"
+      ]
+    }
+  }
+}
+```
+
 ## Configuration
 
 Three configuration methods are supported. Precedence order:
 
 **CLI flags > TOML config file > Environment variables > Built-in defaults**
+
+### Defaults
+
+With no flags, environment variables, or config file the server uses
+these built-in defaults:
+
+| Setting | Default |
+|---------|---------|
+| `specs_dir` | Auto-detected (two levels up from the package directory) |
+| `cache_dir` | `~/.cache/mcp/zwave-specs` |
+| `app_layer_pdf` | `Z-Wave Specification AWG V5.0.pdf` |
+| `header_file` | `API_includes/ZW_classcmd.h` |
+| `cc_list_xlsx` | `Z-Wave Command Classes Specifications/List of defined Z-Wave Command Classes.xlsx` |
+| `network_layer_pdf` | `Z-Wave Stack Specifications/Z-Wave and Z-Wave Long Range Network Layer Specification.pdf` |
+| `host_api_pdf` | `Z-Wave Stack Specifications/Z-Wave Host API Specification.pdf` |
+
+PDF groups (`supplementary_pdfs`, `test_pdfs`, `legacy_pdfs`,
+`standalone_pdfs`) also ship with defaults -- see the
+[TOML Config File](#toml-config-file) section for the full list of keys.
 
 ### CLI Flags
 
@@ -111,7 +234,7 @@ Category dict entries use a double underscore to separate the group name
 from the key:
 
 ```bash
-export ZWAVE_SPECS_MCP_LEGACY_PDFS__LEGACY_AWG_V4="Z-Wave Specification AWG V4.0.pdf"
+export ZWAVE_SPECS_MCP_LEGACY_PDFS__LEGACY_APP_LAYER_V4="Z-Wave Specification AWG V4.0.pdf"
 export ZWAVE_SPECS_MCP_TEST_PDFS__TEST_SECURITY="Z-Wave Security Test Specification.pdf"
 ```
 
@@ -314,10 +437,10 @@ legacy_app_layer_v4 = "Z-Wave Specification AWG V4.0.pdf"
 category entries:
 
 ```bash
-export ZWAVE_SPECS_MCP_LEGACY_PDFS__LEGACY_AWG_V4="Z-Wave Specification AWG V4.0.pdf"
+export ZWAVE_SPECS_MCP_LEGACY_PDFS__LEGACY_APP_LAYER_V4="Z-Wave Specification AWG V4.0.pdf"
 ```
 
-For individual path overrides (like a different AWG PDF location):
+For individual path overrides (like a different application layer PDF location):
 
 ```bash
 export ZWAVE_SPECS_MCP_APP_LAYER_PDF="custom/path/to/AWG.pdf"
