@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zwave-specs-mcp"
+version = "0.1.0"
+description = "MCP server for querying the Z-Wave specification"
+license = "AGPL-3.0-only"
+requires-python = ">=3.13"
+dependencies = [
+    "fastmcp>=2,<3",
+    "pymupdf4llm>=0.0.17",
+    "openpyxl>=3.1",
+]
+
+[project.scripts]
+zwave-specs-mcp = "mcp_zwave_specs.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_zwave_specs"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 99
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.15.1",
+]

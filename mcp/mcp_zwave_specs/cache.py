@@ -1,0 +1,132 @@
+"""Disk cache for extracted Z-Wave specification data."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+from pathlib import Path
+from typing import Any
+
+from mcp_zwave_specs.config import Config
+
+logger = logging.getLogger(__name__)
+
+CACHE_VERSION = 1
+
+
+def _compute_specs_hash(specs_dir: Path) -> str:
+    """Hash specs directory contents by file sizes and mtimes for invalidation."""
+    h = hashlib.sha256()
+    if not specs_dir.is_dir():
+        return "missing"
+    for p in sorted(specs_dir.rglob("*")):
+        if p.is_file():
+            stat = p.stat()
+            h.update(f"{p.relative_to(specs_dir)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+    return h.hexdigest()[:16]
+
+
+class CacheManager:
+    """Manages disk cache for extracted spec data.
+
+    Cache is invalidated when specs directory contents change (based on
+    file sizes and modification times).
+    """
+
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self.cache_dir = config.cache_dir
+        self._manifest: dict[str, Any] | None = None
+
+    @property
+    def manifest_path(self) -> Path:
+        return self.cache_dir / "manifest.json"
+
+    def ensure_dirs(self) -> None:
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        (self.cache_dir / "awg_sections").mkdir(exist_ok=True)
+        (self.cache_dir / "supplementary").mkdir(exist_ok=True)
+        (self.cache_dir / "registries").mkdir(exist_ok=True)
+
+    def _load_manifest(self) -> dict[str, Any]:
+        if self._manifest is not None:
+            return self._manifest
+        if self.manifest_path.exists():
+            try:
+                self._manifest = json.loads(self.manifest_path.read_text())
+                return self._manifest
+            except (json.JSONDecodeError, KeyError):
+                logger.warning("Corrupted cache manifest, rebuilding")
+        self._manifest = {}
+        return self._manifest
+
+    def _save_manifest(self) -> None:
+        self.ensure_dirs()
+        self.manifest_path.write_text(json.dumps(self._manifest or {}, indent=2))
+
+    def is_valid(self) -> bool:
+        """Check if the cache is valid against the current specs directory."""
+        manifest = self._load_manifest()
+        if manifest.get("version") != CACHE_VERSION:
+            return False
+        current_hash = _compute_specs_hash(self.config.specs_dir)
+        return manifest.get("specs_hash") == current_hash
+
+    def mark_valid(self) -> None:
+        """Update manifest with current specs hash."""
+        self._manifest = self._load_manifest()
+        self._manifest["version"] = CACHE_VERSION
+        self._manifest["specs_hash"] = _compute_specs_hash(self.config.specs_dir)
+        self._save_manifest()
+
+    def has_category(self, category: str) -> bool:
+        manifest = self._load_manifest()
+        return category in manifest.get("categories", {})
+
+    def mark_category(self, category: str) -> None:
+        manifest = self._load_manifest()
+        manifest.setdefault("categories", {})[category] = True
+        self._save_manifest()
+
+    # --- JSON read/write helpers ---
+
+    def read_json(self, relative_path: str) -> Any | None:
+        path = self.cache_dir / relative_path
+        if not path.exists():
+            return None
+        try:
+            return json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            logger.warning("Failed to read cache file %s, ignoring", relative_path)
+            return None
+
+    def write_json(self, relative_path: str, data: Any) -> None:
+        self.ensure_dirs()
+        path = self.cache_dir / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+    def read_text(self, relative_path: str) -> str | None:
+        path = self.cache_dir / relative_path
+        if not path.exists():
+            return None
+        try:
+            return path.read_text()
+        except OSError:
+            return None
+
+    def write_text(self, relative_path: str, text: str) -> None:
+        self.ensure_dirs()
+        path = self.cache_dir / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def clear(self) -> None:
+        """Remove all cached data."""
+        import shutil
+
+        if self.cache_dir.exists():
+            shutil.rmtree(self.cache_dir)
+        self._manifest = None
+        logger.info("Cache cleared: %s", self.cache_dir)
