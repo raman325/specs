@@ -150,14 +150,21 @@ def _collect_pdf_paths(config: Config) -> list[tuple[str, Path]]:
     return pairs
 
 
-def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
+def extract_supplementary(
+    config: Config,
+) -> tuple[dict[str, list[SpecSection]], dict[str, Path]]:
     """Extract and split all supplementary PDFs in parallel.
 
-    Returns a dict of pdf_key → list of SpecSection.
+    Returns (sections_by_key, paths_by_key) where:
+      - sections_by_key: pdf_key → list of SpecSection
+      - paths_by_key: pdf_key → resolved filesystem Path
     """
     pairs = _collect_pdf_paths(config)
     if not pairs:
-        return {}
+        return {}, {}
+
+    # Build path lookup from all collected pairs
+    paths: dict[str, Path] = {key: pdf_path for key, pdf_path in pairs}
 
     logger.info("Extracting %d supplementary PDFs in parallel...", len(pairs))
     start = time.monotonic()
@@ -179,4 +186,4 @@ def extract_supplementary(config: Config) -> dict[str, list[SpecSection]]:
         sum(len(s) for s in result.values()),
         elapsed,
     )
-    return result
+    return result, paths

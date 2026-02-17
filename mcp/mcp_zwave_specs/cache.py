@@ -65,9 +65,8 @@ class CacheManager:
     def ensure_dirs(self) -> None:
         """Create the cache directory tree if it doesn't exist."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        (self.cache_dir / "app_layer_sections").mkdir(exist_ok=True)
-        (self.cache_dir / "supplementary").mkdir(exist_ok=True)
-        (self.cache_dir / "registries").mkdir(exist_ok=True)
+        for subdir in ("app_layer_sections", "supplementary", "registries"):
+            (self.cache_dir / subdir).mkdir(exist_ok=True)
 
     def _load_manifest(self) -> dict[str, Any]:
         """Load the manifest from disk, or return an empty dict on first call."""

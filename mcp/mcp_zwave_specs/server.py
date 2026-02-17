@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from difflib import get_close_matches
+from pathlib import Path
 
 from fastmcp import Context, FastMCP
 
@@ -32,7 +33,10 @@ from mcp_zwave_specs.extractors.header import (
 )
 from mcp_zwave_specs.extractors.pdf import extract_pages
 from mcp_zwave_specs.extractors.registry import parse_cc_list, parse_registries
-from mcp_zwave_specs.extractors.supplementary import extract_supplementary
+from mcp_zwave_specs.extractors.supplementary import (
+    _collect_pdf_paths,
+    extract_supplementary,
+)
 from mcp_zwave_specs.models import (
     CCCommand,
     CCHeaderData,
@@ -75,6 +79,8 @@ class AppState:
     device_classes: list[DeviceClass] = field(default_factory=list)
     # Constants from all header files (keyed by header filename)
     header_constants: dict[str, list[HeaderConstant]] = field(default_factory=dict)
+    # Map pdf_key → resolved filesystem Path (for supplementary PDFs)
+    supplementary_paths: dict[str, Path] = field(default_factory=dict)
 
     # Transient: shared PDF pages to avoid redundant extraction
     _app_layer_pages: list | None = None
@@ -290,6 +296,10 @@ class AppState:
         if not self.config.specs_available:
             return
 
+        # Always populate path lookup (cheap, no PDF parsing)
+        for key, pdf_path in _collect_pdf_paths(self.config):
+            self.supplementary_paths[key] = pdf_path
+
         if self.cache.is_valid() and self.cache.has_category("supplementary"):
             cached_keys = self.cache.read_json("supplementary/index.json")
             if cached_keys:
@@ -303,7 +313,7 @@ class AppState:
                 )
                 return
 
-        self.supplementary = extract_supplementary(self.config)
+        self.supplementary, self.supplementary_paths = extract_supplementary(self.config)
 
         # Cache
         keys = list(self.supplementary.keys())
@@ -490,12 +500,30 @@ def _format_cc_header(cc: CommandClassInfo, config: Config) -> str:
     else:
         lines.append(f"- **Section**: {cc.section_number}")
     if config.app_layer_rst_available:
-        lines.append("- **Source**: RST source")
+        lines.append("- **Source**: RST")
+        lines.append(f"- **File**: {config.app_layer_rst_dir}")
     else:
         source_path = config.path_overrides.get("app_layer_pdf", DEFAULT_PATHS["app_layer_pdf"])
-        lines.append(f"- **Source**: {config.github_url(source_path)}")
+        pdf = config.specs_dir / source_path
+        lines.append("- **Source**: PDF")
+        lines.append(f"- **File**: {pdf}")
+        lines.append(f"- **GitHub**: {config.github_url(source_path)}")
     lines.append(f"- **Status**: {cc.status}")
     return "\n".join(lines)
+
+
+def _format_pdf_source(state: AppState, pdf_key: str) -> str:
+    """Format source lines for a supplementary PDF, showing path and GitHub link."""
+    pdf_path = state.supplementary_paths.get(pdf_key)
+    if pdf_path is None:
+        return f"`{pdf_key}`"
+    rel = (
+        pdf_path.relative_to(state.config.specs_dir)
+        if pdf_path.is_relative_to(state.config.specs_dir)
+        else pdf_path
+    )
+    github = state.config.github_url(str(rel))
+    return f"`{pdf_key}`\n- **File**: {pdf_path}\n- **GitHub**: {github}"
 
 
 def _get_state(ctx: Context) -> AppState:
@@ -840,7 +868,7 @@ def create_server(config: Config) -> FastMCP:
                 if section.lower() in s.title.lower() or s.section_number == section:
                     return (
                         f"# {s.title}\n"
-                        f"- Source: {pdf}\n"
+                        f"- Source: {_format_pdf_source(state, pdf)}\n"
                         f"- Pages: {s.page_start}-{s.page_end}\n\n"
                         f"---\n\n{s.content}"
                     )
@@ -861,7 +889,7 @@ def create_server(config: Config) -> FastMCP:
             if best:
                 return (
                     f"# {best.title}\n"
-                    f"- Source: {pdf}\n"
+                    f"- Source: {_format_pdf_source(state, pdf)}\n"
                     f"- Pages: {best.page_start}-{best.page_end}\n"
                     f"- Matches: {best_count} occurrences of '{search}'\n\n"
                     f"---\n\n{best.content}"
@@ -1253,6 +1281,17 @@ def create_server(config: Config) -> FastMCP:
     return mcp
 
 
+def _format_app_layer_source(config: Config, display_name: str) -> str:
+    """Format the source lines for application layer chapter responses."""
+    if config.app_layer_rst_available:
+        return f"RST, {display_name}\n- **File**: {config.app_layer_rst_dir}"
+    source_path = config.path_overrides.get("app_layer_pdf", DEFAULT_PATHS["app_layer_pdf"])
+    pdf = config.specs_dir / source_path
+    return (
+        f"PDF, {display_name}\n- **File**: {pdf}\n- **GitHub**: {config.github_url(source_path)}"
+    )
+
+
 def _search_app_layer_chapter(
     state: AppState,
     chapter_key: str,
@@ -1285,11 +1324,12 @@ def _search_app_layer_chapter(
             titles
         )
 
+    source = _format_app_layer_source(state.config, display_name)
     if len(matches) == 1:
         s = matches[0]
         return (
             f"# {s.title}\n"
-            f"- Source: Application Layer V5.0, {display_name}\n"
+            f"- Source: {source}\n"
             f"- Pages: {s.page_start}-{s.page_end}\n\n"
             f"---\n\n{s.content}"
         )
@@ -1335,12 +1375,13 @@ def _search_supplementary_group(
             available = ", ".join(sorted(group))
             return f"Spec '{pdf}' not found. Available: {available}"
 
+        source = _format_pdf_source(state, pdf)
         if section:
             for s in sections:
                 if section.lower() in s.title.lower():
                     return (
                         f"# {s.title}\n"
-                        f"- Source: `{pdf}`\n"
+                        f"- Source: {source}\n"
                         f"- Pages: {s.page_start}-{s.page_end}\n\n"
                         f"---\n\n{s.content}"
                     )
@@ -1354,7 +1395,7 @@ def _search_supplementary_group(
             if count > 0:
                 return (
                     f"# {best.title}\n"
-                    f"- Source: `{pdf}`\n"
+                    f"- Source: {source}\n"
                     f"- Pages: {best.page_start}-{best.page_end}\n"
                     f"- Matches: {count}\n\n"
                     f"---\n\n{best.content}"
