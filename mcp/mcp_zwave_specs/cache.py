@@ -45,7 +45,7 @@ class CacheManager:
 
     def ensure_dirs(self) -> None:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        (self.cache_dir / "awg_sections").mkdir(exist_ok=True)
+        (self.cache_dir / "app_layer_sections").mkdir(exist_ok=True)
         (self.cache_dir / "supplementary").mkdir(exist_ok=True)
         (self.cache_dir / "registries").mkdir(exist_ok=True)
 

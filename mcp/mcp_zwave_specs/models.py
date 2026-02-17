@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class CommandClassInfo:
-    """A Command Class extracted from the AWG spec."""
+    """A Command Class extracted from the application layer spec."""
 
     name: str
     section_number: str  # e.g., "2.2.37"
@@ -79,7 +79,7 @@ class CCHeaderData:
 
 @dataclass
 class SpecSection:
-    """A section from a non-AWG spec PDF."""
+    """A section from a supplementary (non-CC) spec PDF."""
 
     title: str
     content: str

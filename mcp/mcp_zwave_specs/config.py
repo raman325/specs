@@ -34,9 +34,9 @@ DEFAULT_LEGACY_PDFS: dict[str, str] = {
     "legacy_500_serial_api": "500 Series Serial API Specs.pdf",
     "legacy_device_class": "Z-Wave Device Class Specification.pdf",
     "legacy_zwaveplus_v1_device_type": "ZWA_Z-Wave Plus Device Type Specification 33.0.0.pdf",
-    "legacy_awg_v1": "Z-Wave Specification AWG V1.0.pdf",
-    "legacy_awg_v2": "Z-Wave Specification AWG V2.0.pdf",
-    "legacy_awg_v3": "Z-Wave Specification AWG V3.0.pdf",
+    "legacy_app_layer_v1": "Z-Wave Specification AWG V1.0.pdf",
+    "legacy_app_layer_v2": "Z-Wave Specification AWG V2.0.pdf",
+    "legacy_app_layer_v3": "Z-Wave Specification AWG V3.0.pdf",
 }
 
 DEFAULT_STANDALONE_PDFS: dict[str, str] = {
@@ -44,7 +44,7 @@ DEFAULT_STANDALONE_PDFS: dict[str, str] = {
 }
 
 DEFAULT_PATHS: dict[str, str] = {
-    "awg_pdf": "Z-Wave Specification AWG V5.0.pdf",
+    "app_layer_pdf": "Z-Wave Specification AWG V5.0.pdf",
     "header_file": "API_includes/ZW_classcmd.h",
     "cc_list_xlsx": (
         "Z-Wave Command Classes Specifications"
@@ -83,8 +83,8 @@ class Config:
         return self.specs_dir.is_dir()
 
     @property
-    def awg_pdf(self) -> Path:
-        relative = self.path_overrides.get("awg_pdf", DEFAULT_PATHS["awg_pdf"])
+    def app_layer_pdf(self) -> Path:
+        relative = self.path_overrides.get("app_layer_pdf", DEFAULT_PATHS["app_layer_pdf"])
         return self.specs_dir / relative
 
     @property

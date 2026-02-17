@@ -1,4 +1,4 @@
-"""Extract and split supplementary (non-AWG) spec PDFs by chapter headings."""
+"""Extract supplementary (non-CC/application layer) spec PDFs by chapter headings."""
 
 from __future__ import annotations
 

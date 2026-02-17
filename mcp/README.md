@@ -57,7 +57,7 @@ cache_dir = "~/.cache/mcp/zwave-specs"
 
 # Individual file path overrides (relative to specs_dir)
 [paths]
-awg_pdf = "Z-Wave Specification AWG V5.0.pdf"
+app_layer_pdf = "Z-Wave Specification AWG V5.0.pdf"
 header_file = "API_includes/ZW_classcmd.h"
 cc_list_xlsx = "Z-Wave Command Classes Specifications/List of defined Z-Wave Command Classes.xlsx"
 network_layer_pdf = "Z-Wave Stack Specifications/Z-Wave and Z-Wave Long Range Network Layer Specification.pdf"
@@ -84,9 +84,9 @@ legacy_500_app_guide = "500 Series Application Programmers Guide.pdf"
 legacy_500_serial_api = "500 Series Serial API Specs.pdf"
 legacy_device_class = "Z-Wave Device Class Specification.pdf"
 legacy_zwaveplus_v1_device_type = "ZWA_Z-Wave Plus Device Type Specification 33.0.0.pdf"
-legacy_awg_v1 = "Z-Wave Specification AWG V1.0.pdf"
-legacy_awg_v2 = "Z-Wave Specification AWG V2.0.pdf"
-legacy_awg_v3 = "Z-Wave Specification AWG V3.0.pdf"
+legacy_app_layer_v1 = "Z-Wave Specification AWG V1.0.pdf"
+legacy_app_layer_v2 = "Z-Wave Specification AWG V2.0.pdf"
+legacy_app_layer_v3 = "Z-Wave Specification AWG V3.0.pdf"
 
 # Standalone PDFs (not inside a subdirectory)
 [standalone_pdfs]
@@ -103,7 +103,7 @@ Individual path overrides use the `ZWAVE_SPECS_MCP_` prefix with the key name in
 uppercase:
 
 ```bash
-export ZWAVE_SPECS_MCP_AWG_PDF="Z-Wave Specification AWG V5.0.pdf"
+export ZWAVE_SPECS_MCP_APP_LAYER_PDF="Z-Wave Specification AWG V5.0.pdf"
 export ZWAVE_SPECS_MCP_HEADER_FILE="API_includes/ZW_classcmd.h"
 ```
 
@@ -248,12 +248,12 @@ Legacy Z-Wave specifications.
 | `section` | `str \| None` | Section title to retrieve |
 | `search` | `str \| None` | Search text within the spec |
 
-### AWG Chapter Tools
+### Application Layer Chapter Tools
 
 #### get_device_type
 
-Device Type definition from AWG Chapter 7. Includes mandatory and
-recommended CC requirements.
+Device Type definition from application layer spec, Chapter 7. Includes
+mandatory and recommended CC requirements.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -261,7 +261,7 @@ recommended CC requirements.
 
 #### get_role_type
 
-Role Type definition from AWG Chapter 8 (CSC, SSC, PC, RPC, PEN, AOEN,
+Role Type definition from application layer spec, Chapter 8 (CSC, SSC, PC, RPC, PEN, AOEN,
 etc.).
 
 | Parameter | Type | Description |
@@ -270,7 +270,7 @@ etc.).
 
 #### get_cc_interview_steps
 
-CC interview/control requirements from AWG Chapter 6.
+CC interview/control requirements from application layer spec, Chapter 6.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -307,7 +307,7 @@ a new legacy spec:
 
 ```toml
 [legacy_pdfs]
-legacy_awg_v4 = "Z-Wave Specification AWG V4.0.pdf"
+legacy_app_layer_v4 = "Z-Wave Specification AWG V4.0.pdf"
 ```
 
 **Via environment variable** -- use the double-underscore syntax for
@@ -320,7 +320,7 @@ export ZWAVE_SPECS_MCP_LEGACY_PDFS__LEGACY_AWG_V4="Z-Wave Specification AWG V4.0
 For individual path overrides (like a different AWG PDF location):
 
 ```bash
-export ZWAVE_SPECS_MCP_AWG_PDF="custom/path/to/AWG.pdf"
+export ZWAVE_SPECS_MCP_APP_LAYER_PDF="custom/path/to/AWG.pdf"
 ```
 
 New entries are merged with the built-in defaults. Setting a key that

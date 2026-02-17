@@ -12,10 +12,10 @@ from fastmcp import Context, FastMCP
 
 from mcp_zwave_specs.cache import CacheManager
 from mcp_zwave_specs.config import Config
-from mcp_zwave_specs.extractors.awg import (
-    extract_awg_chapter_sections,
+from mcp_zwave_specs.extractors.app_layer import (
+    extract_app_layer_chapter_sections,
     group_cc_versions,
-    split_awg_sections,
+    split_app_layer_sections,
 )
 from mcp_zwave_specs.extractors.header import (
     DeviceClass,
@@ -60,36 +60,36 @@ class AppState:
     supplementary: dict[str, list[SpecSection]] = field(default_factory=dict)
     search_index: SearchIndex = field(default_factory=SearchIndex)
 
-    # AWG chapter sections (device types, role types, cc control)
-    awg_chapters: dict[str, list[SpecSection]] = field(default_factory=dict)
+    # CC spec chapter sections (device types, role types, cc control)
+    app_layer_chapters: dict[str, list[SpecSection]] = field(default_factory=dict)
     # Device classes from ZW_classcmd.h
     device_classes: list[DeviceClass] = field(default_factory=list)
     # Constants from all header files (keyed by header filename)
     header_constants: dict[str, list[HeaderConstant]] = field(default_factory=dict)
 
-    _awg_loaded: bool = False
+    _app_layer_loaded: bool = False
     _header_loaded: bool = False
     _registries_loaded: bool = False
     _supplementary_loaded: bool = False
-    _awg_chapters_loaded: bool = False
+    _app_layer_chapters_loaded: bool = False
     _header_constants_loaded: bool = False
 
-    def _ensure_awg(self) -> None:
-        if self._awg_loaded:
+    def _ensure_app_layer(self) -> None:
+        if self._app_layer_loaded:
             return
-        self._awg_loaded = True
+        self._app_layer_loaded = True
 
         if not self.config.specs_available:
             return
 
         # Try cache first
-        if self.cache.is_valid() and self.cache.has_category("awg"):
-            cached = self.cache.read_json("awg_sections.json")
+        if self.cache.is_valid() and self.cache.has_category("app_layer"):
+            cached = self.cache.read_json("app_layer_sections.json")
             if cached:
                 for name, data in cached.items():
                     self.cc_sections[name] = CommandClassInfo(**data)
                     # Load section content from individual files
-                    content = self.cache.read_text(f"awg_sections/{name.replace('/', '_')}.md")
+                    content = self.cache.read_text(f"app_layer_sections/{name.replace('/', '_')}.md")
                     if content:
                         self.cc_sections[name].content = content
                 self._build_search_index()
@@ -97,9 +97,9 @@ class AppState:
                 return
 
         # Extract from PDF
-        logger.info("Extracting AWG sections (this may take a moment)...")
-        pages = extract_pages(self.config.awg_pdf)
-        sections = split_awg_sections(pages)
+        logger.info("Extracting CC sections from application layer PDF (this may take a moment)...")
+        pages = extract_pages(self.config.app_layer_pdf)
+        sections = split_app_layer_sections(pages)
         self.cc_sections = group_cc_versions(sections)
 
         # Merge CC IDs from header data
@@ -114,7 +114,7 @@ class AppState:
         index_data = {}
         for name, cc in self.cc_sections.items():
             safe_name = name.replace("/", "_")
-            self.cache.write_text(f"awg_sections/{safe_name}.md", cc.content)
+            self.cache.write_text(f"app_layer_sections/{safe_name}.md", cc.content)
             index_data[name] = {
                 "name": cc.name,
                 "section_number": cc.section_number,
@@ -126,8 +126,8 @@ class AppState:
                 "content": "",  # stored separately
                 "category": cc.category,
             }
-        self.cache.write_json("awg_sections.json", index_data)
-        self.cache.mark_category("awg")
+        self.cache.write_json("app_layer_sections.json", index_data)
+        self.cache.mark_category("app_layer")
         self.cache.mark_valid()
 
         self._build_search_index()
@@ -302,40 +302,40 @@ class AppState:
         self.cache.mark_category("supplementary")
         self.cache.mark_valid()
 
-    def _ensure_awg_chapters(self) -> None:
-        if self._awg_chapters_loaded:
+    def _ensure_app_layer_chapters(self) -> None:
+        if self._app_layer_chapters_loaded:
             return
-        self._awg_chapters_loaded = True
+        self._app_layer_chapters_loaded = True
 
         if not self.config.specs_available:
             return
 
-        if self.cache.is_valid() and self.cache.has_category("awg_chapters"):
-            cached_keys = self.cache.read_json("awg_chapters/index.json")
+        if self.cache.is_valid() and self.cache.has_category("app_layer_chapters"):
+            cached_keys = self.cache.read_json("app_layer_chapters/index.json")
             if cached_keys:
                 for key in cached_keys:
-                    data = self.cache.read_json(f"awg_chapters/{key}.json")
+                    data = self.cache.read_json(f"app_layer_chapters/{key}.json")
                     if data:
-                        self.awg_chapters[key] = [SpecSection(**s) for s in data]
-                logger.info("Loaded %d AWG chapter groups from cache", len(self.awg_chapters))
+                        self.app_layer_chapters[key] = [SpecSection(**s) for s in data]
+                logger.info("Loaded %d CC spec chapter groups from cache", len(self.app_layer_chapters))
                 return
 
-        # Extract from AWG PDF
-        from mcp_zwave_specs.extractors.awg import AWG_CHAPTERS
+        # Extract from application layer PDF
+        from mcp_zwave_specs.extractors.app_layer import APP_LAYER_CHAPTERS
 
-        logger.info("Extracting AWG chapter sections...")
-        pages = extract_pages(self.config.awg_pdf)
-        for chapter_title, key in AWG_CHAPTERS.items():
-            sections = extract_awg_chapter_sections(pages, chapter_title)
+        logger.info("Extracting application layer chapter sections...")
+        pages = extract_pages(self.config.app_layer_pdf)
+        for chapter_title, key in APP_LAYER_CHAPTERS.items():
+            sections = extract_app_layer_chapter_sections(pages, chapter_title)
             if sections:
-                self.awg_chapters[key] = sections
+                self.app_layer_chapters[key] = sections
 
         # Cache
-        keys = list(self.awg_chapters.keys())
-        self.cache.write_json("awg_chapters/index.json", keys)
-        for key, sections in self.awg_chapters.items():
+        keys = list(self.app_layer_chapters.keys())
+        self.cache.write_json("app_layer_chapters/index.json", keys)
+        for key, sections in self.app_layer_chapters.items():
             self.cache.write_json(
-                f"awg_chapters/{key}.json",
+                f"app_layer_chapters/{key}.json",
                 [
                     {
                         "title": s.title,
@@ -348,9 +348,9 @@ class AppState:
                     for s in sections
                 ],
             )
-        self.cache.mark_category("awg_chapters")
+        self.cache.mark_category("app_layer_chapters")
         self.cache.mark_valid()
-        logger.info("Extracted %d AWG chapter groups", len(self.awg_chapters))
+        logger.info("Extracted %d CC spec chapter groups", len(self.app_layer_chapters))
 
     def _ensure_header_constants(self) -> None:
         if self._header_constants_loaded:
@@ -393,7 +393,7 @@ class AppState:
 
     def find_cc(self, name: str | None, cc_id: int | None) -> CommandClassInfo | None:
         """Find a CC by name or ID, with fuzzy matching."""
-        self._ensure_awg()
+        self._ensure_app_layer()
 
         if cc_id is not None:
             for cc in self.cc_sections.values():
@@ -422,7 +422,7 @@ class AppState:
 
     def suggest_cc_names(self, name: str) -> list[str]:
         """Return close CC name matches for error messages."""
-        self._ensure_awg()
+        self._ensure_app_layer()
         lower_map = {k.lower(): k for k in self.cc_sections}
         matches = get_close_matches(name.lower(), lower_map.keys(), n=5, cutoff=0.4)
         return [lower_map[m] for m in matches]
@@ -432,7 +432,7 @@ def _format_cc_header(cc: CommandClassInfo, config: Config) -> str:
     """Format the header block for a CC response."""
     lines = [f"# {cc.name} Command Class, {cc.version_str}"]
     lines.append(f"- **CC ID**: {cc.id_hex}")
-    lines.append(f"- **AWG Section**: {cc.section_number} (pages {cc.page_start}-{cc.page_end})")
+    lines.append(f"- **Section**: {cc.section_number} (pages {cc.page_start}-{cc.page_end})")
     source_path = "Z-Wave Specification AWG V5.0.pdf"
     lines.append(f"- **Source**: {config.github_url(source_path)}")
     lines.append(f"- **Status**: {cc.status}")
@@ -482,7 +482,7 @@ def create_server(config: Config) -> FastMCP:
         if not state.config.specs_available:
             return CLONE_INSTRUCTIONS
 
-        state._ensure_awg()
+        state._ensure_app_layer()
         state._ensure_header()
 
         lines = ["# Z-Wave Command Classes\n"]
@@ -547,7 +547,7 @@ def create_server(config: Config) -> FastMCP:
         if not state.config.specs_available:
             return CLONE_INSTRUCTIONS
 
-        state._ensure_awg()
+        state._ensure_app_layer()
 
         results = state.search_index.search(query, max_results=max_results)
         if not results:
@@ -826,15 +826,15 @@ def create_server(config: Config) -> FastMCP:
 
         lines = ["# Available Z-Wave Specification Documents\n"]
 
-        # AWG CC Specs
-        lines.append("## Command Class Specifications (AWG V5.0)")
+        # CC Specs from application layer document
+        lines.append("## Command Class Specifications (Application Layer V5.0)")
         lines.append("Use `get_command_class()` or `list_command_classes()` to access.\n")
 
-        # AWG Chapters (device types, role types, CC control)
-        state._ensure_awg_chapters()
-        if state.awg_chapters:
-            lines.append("## AWG Chapters")
-            for key, sections in sorted(state.awg_chapters.items()):
+        # CC spec chapters (device types, role types, CC control)
+        state._ensure_app_layer_chapters()
+        if state.app_layer_chapters:
+            lines.append("## Application Layer Chapters")
+            for key, sections in sorted(state.app_layer_chapters.items()):
                 tool_name = {
                     "device_types": "get_device_type()",
                     "role_types": "get_role_type()",
@@ -888,14 +888,14 @@ def create_server(config: Config) -> FastMCP:
 
         return "\n".join(lines)
 
-    # --- AWG Chapter Tools (Device Types, Role Types, CC Control) ---
+    # --- CC Spec Chapter Tools (Device Types, Role Types, CC Control) ---
 
     @mcp.tool()
     async def get_device_type(
         ctx: Context,
         name: str | None = None,
     ) -> str:
-        """Get Z-Wave Device Type definition from AWG Chapter 7.
+        """Get Z-Wave Device Type definition from the application layer spec, Chapter 7.
 
         Includes mandatory and recommended CC requirements for each device type.
 
@@ -906,15 +906,15 @@ def create_server(config: Config) -> FastMCP:
         if not state.config.specs_available:
             return CLONE_INSTRUCTIONS
 
-        state._ensure_awg_chapters()
-        return _search_awg_chapter(state, "device_types", "Device Types", name)
+        state._ensure_app_layer_chapters()
+        return _search_app_layer_chapter(state, "device_types", "Device Types", name)
 
     @mcp.tool()
     async def get_role_type(
         ctx: Context,
         name: str | None = None,
     ) -> str:
-        """Get Z-Wave Role Type definition from AWG Chapter 8.
+        """Get Z-Wave Role Type definition from the application layer spec, Chapter 8.
 
         Role types define network behavior: CSC, SSC, PC, RPC, PEN, AOEN, etc.
 
@@ -925,15 +925,15 @@ def create_server(config: Config) -> FastMCP:
         if not state.config.specs_available:
             return CLONE_INSTRUCTIONS
 
-        state._ensure_awg_chapters()
-        return _search_awg_chapter(state, "role_types", "Role Types", name)
+        state._ensure_app_layer_chapters()
+        return _search_app_layer_chapter(state, "role_types", "Role Types", name)
 
     @mcp.tool()
     async def get_cc_interview_steps(
         ctx: Context,
         name: str | None = None,
     ) -> str:
-        """Get Command Class interview/control requirements from AWG Chapter 6.
+        """Get Command Class interview/control requirements from the application layer spec, Chapter 6.
 
         Describes how a controller should interview devices for each CC.
 
@@ -944,8 +944,8 @@ def create_server(config: Config) -> FastMCP:
         if not state.config.specs_available:
             return CLONE_INSTRUCTIONS
 
-        state._ensure_awg_chapters()
-        return _search_awg_chapter(state, "cc_control", "CC Control / Interview", name)
+        state._ensure_app_layer_chapters()
+        return _search_app_layer_chapter(state, "cc_control", "CC Control / Interview", name)
 
     # --- Device Class & Header Constants Tools ---
 
@@ -959,7 +959,7 @@ def create_server(config: Config) -> FastMCP:
         """Look up Z-Wave Device Class (Generic/Specific types).
 
         The legacy device classification from ZW_classcmd.h that maps device
-        class IDs to names. For the newer Device Type spec (AWG Ch. 7), use
+        class IDs to names. For the newer Device Type spec (application layer Ch. 7), use
         get_device_type() instead.
 
         Args:
@@ -1192,20 +1192,20 @@ def create_server(config: Config) -> FastMCP:
     return mcp
 
 
-def _search_awg_chapter(
+def _search_app_layer_chapter(
     state: AppState,
     chapter_key: str,
     display_name: str,
     search: str | None,
 ) -> str:
-    """Search or list sections within an AWG chapter."""
-    sections = state.awg_chapters.get(chapter_key, [])
+    """Search or list sections within a CC spec chapter."""
+    sections = state.app_layer_chapters.get(chapter_key, [])
     if not sections:
         return f"No {display_name} sections found."
 
     if search is None:
         # Return TOC
-        lines = [f"# {display_name} (AWG)\n"]
+        lines = [f"# {display_name}\n"]
         for s in sections:
             lines.append(f"- **{s.title}** (pages {s.page_start}-{s.page_end})")
         return "\n".join(lines)
@@ -1228,7 +1228,7 @@ def _search_awg_chapter(
         s = matches[0]
         return (
             f"# {s.title}\n"
-            f"- Source: AWG V5.0, {display_name}\n"
+            f"- Source: Application Layer V5.0, {display_name}\n"
             f"- Pages: {s.page_start}-{s.page_end}\n\n"
             f"---\n\n{s.content}"
         )

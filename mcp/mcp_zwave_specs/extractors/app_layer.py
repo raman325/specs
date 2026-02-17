@@ -1,4 +1,6 @@
-"""AWG spec section splitter — extracts individual Command Class sections."""
+"""Application layer spec extractor — splits the Z-Wave Application Workgroup
+(AWG) specification PDF into individual Command Class sections and chapter
+subsections (device types, role types, CC interview/control requirements)."""
 
 from __future__ import annotations
 
@@ -111,14 +113,14 @@ def _extract_section_text(
     return "\n".join(parts).strip()
 
 
-def split_awg_sections(pages: list[PageChunk]) -> list[CommandClassInfo]:
-    """Split AWG PDF pages into individual CC sections.
+def split_app_layer_sections(pages: list[PageChunk]) -> list[CommandClassInfo]:
+    """Split application layer PDF pages into individual CC sections.
 
     Returns a list of CommandClassInfo objects, one per CC version section.
     """
     entries = _collect_cc_toc_entries(pages)
     if not entries:
-        logger.warning("No CC sections found in AWG TOC")
+        logger.warning("No CC sections found in application layer TOC")
         return []
 
     sections: list[CommandClassInfo] = []
@@ -154,7 +156,7 @@ def split_awg_sections(pages: list[PageChunk]) -> list[CommandClassInfo]:
             )
         )
 
-    logger.info("Split AWG into %d CC version sections", len(sections))
+    logger.info("Split application layer spec into %d CC version sections", len(sections))
     return sections
 
 
@@ -199,21 +201,21 @@ def group_cc_versions(sections: list[CommandClassInfo]) -> dict[str, CommandClas
     return grouped
 
 
-# --- AWG Chapter Extraction (Device Types, Role Types, CC Control) ---
+# --- Chapter Extraction (Device Types, Role Types, CC Control) ---
 
 # Level-1 chapter titles → short keys
-AWG_CHAPTERS: dict[str, str] = {
+APP_LAYER_CHAPTERS: dict[str, str] = {
     "Device Type v2 Specification": "device_types",
     "Role Type Specification": "role_types",
     "Command Class Control": "cc_control",
 }
 
 
-def extract_awg_chapter_sections(
+def extract_app_layer_chapter_sections(
     pages: list[PageChunk],
     chapter_title: str,
 ) -> list[SpecSection]:
-    """Extract subsections from a named AWG chapter.
+    """Extract subsections from a named application layer chapter.
 
     Finds the level-1 TOC entry matching `chapter_title`, then splits content
     by level-2 subsections within that chapter's page range.
@@ -236,7 +238,7 @@ def extract_awg_chapter_sections(
             break
 
     if chapter_start < 0:
-        logger.warning("AWG chapter '%s' not found in TOC", chapter_title)
+        logger.warning("Application layer chapter '%s' not found in TOC", chapter_title)
         return []
 
     # Collect level-2 and level-3 entries within the chapter's page range
@@ -253,7 +255,7 @@ def extract_awg_chapter_sections(
             SpecSection(
                 title=chapter_title,
                 content=content,
-                pdf_name="awg",
+                pdf_name="app_layer",
                 page_start=chapter_start + 1,
                 page_end=chapter_end,
             )
@@ -276,12 +278,16 @@ def extract_awg_chapter_sections(
             SpecSection(
                 title=title,
                 content=content,
-                pdf_name="awg",
+                pdf_name="app_layer",
                 section_number=f"ch{chapter_title[0]}.{i + 1}",
                 page_start=start_page + 1,
                 page_end=end_page,
             )
         )
 
-    logger.info("Extracted %d sections from AWG chapter '%s'", len(sections), chapter_title)
+    logger.info(
+        "Extracted %d sections from application layer chapter '%s'",
+        len(sections),
+        chapter_title,
+    )
     return sections
