@@ -72,10 +72,10 @@ class Config:
 
     def __post_init__(self) -> None:
         """Resolve specs_dir and cache_dir to absolute paths."""
-        self.specs_dir = Path(self.specs_dir).resolve()
-        self.cache_dir = Path(self.cache_dir).resolve()
+        self.specs_dir = Path(self.specs_dir).expanduser().resolve()
+        self.cache_dir = Path(self.cache_dir).expanduser().resolve()
         if self.app_layer_rst_dir is not None:
-            self.app_layer_rst_dir = Path(self.app_layer_rst_dir).resolve()
+            self.app_layer_rst_dir = Path(self.app_layer_rst_dir).expanduser().resolve()
 
     @property
     def specs_available(self) -> bool:

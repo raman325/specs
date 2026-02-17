@@ -11,7 +11,7 @@ from difflib import get_close_matches
 from fastmcp import Context, FastMCP
 
 from mcp_zwave_specs.cache import CacheManager
-from mcp_zwave_specs.config import Config
+from mcp_zwave_specs.config import DEFAULT_PATHS, Config
 from mcp_zwave_specs.extractors.app_layer import (
     extract_app_layer_chapter_sections,
     group_cc_versions,
@@ -463,9 +463,15 @@ def _format_cc_header(cc: CommandClassInfo, config: Config) -> str:
     """Format the header block for a CC response."""
     lines = [f"# {cc.name} Command Class, {cc.version_str}"]
     lines.append(f"- **CC ID**: {cc.id_hex}")
-    lines.append(f"- **Section**: {cc.section_number} (pages {cc.page_start}-{cc.page_end})")
-    source_path = "Z-Wave Specification AWG V5.0.pdf"
-    lines.append(f"- **Source**: {config.github_url(source_path)}")
+    if cc.page_start is not None and cc.page_end is not None:
+        lines.append(f"- **Section**: {cc.section_number} (pages {cc.page_start}-{cc.page_end})")
+    else:
+        lines.append(f"- **Section**: {cc.section_number}")
+    if config.app_layer_rst_available:
+        lines.append("- **Source**: RST source")
+    else:
+        source_path = config.path_overrides.get("app_layer_pdf", DEFAULT_PATHS["app_layer_pdf"])
+        lines.append(f"- **Source**: {config.github_url(source_path)}")
     lines.append(f"- **Status**: {cc.status}")
     return "\n".join(lines)
 
@@ -560,6 +566,12 @@ def create_server(config: Config) -> FastMCP:
             if suggestions:
                 msg += f"\n\nDid you mean: {', '.join(suggestions)}?"
             return msg
+
+        if version is not None and version not in cc.versions:
+            return (
+                f"Command Class '{cc.name}' does not have version {version}. "
+                f"Available versions: {cc.version_str}"
+            )
 
         header = _format_cc_header(cc, state.config)
         return f"{header}\n\n---\n\n{cc.content}"

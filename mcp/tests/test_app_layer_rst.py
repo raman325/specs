@@ -1,6 +1,5 @@
 """Tests for RST source extractor."""
 
-
 import pytest
 
 from mcp_zwave_specs.extractors.app_layer_rst import (

@@ -3,10 +3,28 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import shutil
 from pathlib import Path
 
 from mcp_zwave_specs.config import DEFAULT_CACHE_DIR, Config
+
+logger = logging.getLogger(__name__)
+
+# Refuse to delete these directories even if configured as cache_dir.
+_UNSAFE_CACHE_PATHS = {Path("/"), Path.home(), Path.home() / "Documents"}
+
+
+def _clear_cache(cache_dir: Path) -> None:
+    """Remove the cache directory with safety checks against dangerous paths."""
+    resolved = cache_dir.resolve()
+    if resolved in _UNSAFE_CACHE_PATHS or resolved == Path.home():
+        logger.error("Refusing to delete unsafe cache path: %s", resolved)
+        return
+    if not resolved.exists():
+        return
+    shutil.rmtree(resolved)
+    logger.info("Cache cleared: %s", resolved)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -56,11 +74,11 @@ def build_config(args: argparse.Namespace) -> Config:
     if args.config is not None:
         config.merge_toml(args.config)
     if args.specs_dir is not None:
-        config.specs_dir = args.specs_dir.resolve()
+        config.specs_dir = args.specs_dir.expanduser().resolve()
     if args.cache_dir is not None:
-        config.cache_dir = args.cache_dir.resolve()
+        config.cache_dir = args.cache_dir.expanduser().resolve()
     if args.app_layer_rst_dir is not None:
-        config.app_layer_rst_dir = args.app_layer_rst_dir.resolve()
+        config.app_layer_rst_dir = args.app_layer_rst_dir.expanduser().resolve()
     return config
 
 
@@ -69,8 +87,8 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     config = build_config(args)
 
-    if args.clear_cache and config.cache_dir.exists():
-        shutil.rmtree(config.cache_dir)
+    if args.clear_cache:
+        _clear_cache(config.cache_dir)
 
     from mcp_zwave_specs.server import create_server
 

@@ -46,6 +46,7 @@ class CacheManager:
         self.config = config
         self.cache_dir = config.cache_dir
         self._manifest: dict[str, Any] | None = None
+        self._specs_hash: str | None = None
 
     @property
     def manifest_path(self) -> Path:
@@ -83,21 +84,24 @@ class CacheManager:
             return [self.config.app_layer_rst_dir]
         return None
 
+    def _get_specs_hash(self) -> str:
+        """Return the current specs hash, computing and caching it once per process."""
+        if self._specs_hash is None:
+            self._specs_hash = _compute_specs_hash(self.config.specs_dir, self._extra_dirs())
+        return self._specs_hash
+
     def is_valid(self) -> bool:
         """Check if the cache is valid against the current specs directory."""
         manifest = self._load_manifest()
         if manifest.get("version") != CACHE_VERSION:
             return False
-        current_hash = _compute_specs_hash(self.config.specs_dir, self._extra_dirs())
-        return manifest.get("specs_hash") == current_hash
+        return manifest.get("specs_hash") == self._get_specs_hash()
 
     def mark_valid(self) -> None:
         """Update manifest with current specs hash."""
         self._manifest = self._load_manifest()
         self._manifest["version"] = CACHE_VERSION
-        self._manifest["specs_hash"] = _compute_specs_hash(
-            self.config.specs_dir, self._extra_dirs()
-        )
+        self._manifest["specs_hash"] = self._get_specs_hash()
         self._save_manifest()
 
     def has_category(self, category: str) -> bool:
