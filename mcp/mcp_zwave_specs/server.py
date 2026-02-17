@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -428,13 +429,19 @@ class AppState:
 
     def build_all(self) -> None:
         """Eagerly load all data categories (for cache warming)."""
-        self._ensure_header()
-        self._ensure_app_layer()
-        self._ensure_app_layer_chapters()
+        steps = [
+            ("header", self._ensure_header),
+            ("app_layer", self._ensure_app_layer),
+            ("app_layer_chapters", self._ensure_app_layer_chapters),
+            ("registries", self._ensure_registries),
+            ("supplementary", self._ensure_supplementary),
+            ("header_constants", self._ensure_header_constants),
+        ]
+        for name, fn in steps:
+            t0 = time.monotonic()
+            fn()
+            logger.info("build_all: %s completed in %.1fs", name, time.monotonic() - t0)
         self._app_layer_pages = None  # free transient PDF pages
-        self._ensure_registries()
-        self._ensure_supplementary()
-        self._ensure_header_constants()
 
     def find_cc(self, name: str | None, cc_id: int | None) -> CommandClassInfo | None:
         """Find a CC by name or ID, with fuzzy matching."""

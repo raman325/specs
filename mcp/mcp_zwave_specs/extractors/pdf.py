@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import pymupdf4llm
 
 logger = logging.getLogger(__name__)
+
+# Log progress every N pages during extraction
+_PROGRESS_INTERVAL = 100
 
 
 @dataclass
@@ -26,12 +30,14 @@ def extract_pages(pdf_path: Path) -> list[PageChunk]:
 
     Uses pymupdf4llm with page_chunks=True for per-page extraction.
     """
+    start = time.monotonic()
     logger.info("Extracting markdown from %s", pdf_path.name)
 
     chunks = pymupdf4llm.to_markdown(str(pdf_path), page_chunks=True)
 
+    total = len(chunks)
     pages: list[PageChunk] = []
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
         page_num = chunk.get("metadata", {}).get("page", len(pages))
         pages.append(
             PageChunk(
@@ -41,8 +47,12 @@ def extract_pages(pdf_path: Path) -> list[PageChunk]:
                 metadata=chunk.get("metadata", {}),
             )
         )
+        if (i + 1) % _PROGRESS_INTERVAL == 0:
+            elapsed = time.monotonic() - start
+            logger.info("  %s: %d/%d pages (%.1fs elapsed)", pdf_path.name, i + 1, total, elapsed)
 
-    logger.info("Extracted %d pages from %s", len(pages), pdf_path.name)
+    elapsed = time.monotonic() - start
+    logger.info("Extracted %d pages from %s in %.1fs", len(pages), pdf_path.name, elapsed)
     return pages
 
 

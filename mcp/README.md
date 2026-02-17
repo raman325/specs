@@ -446,6 +446,203 @@ Search Z-Wave C header constants (`#define` values).
 | `search` | `str` | Search text (matches define name or comment) |
 | `header` | `str \| None` | Specific header file (e.g., `"ZW_SerialAPI.h"`). Omit to search all. |
 
+## Tool Examples
+
+<details>
+<summary>Click to expand representative request/response pairs</summary>
+
+#### `list_command_classes(category="transport")`
+
+```
+# Z-Wave Command Classes
+
+| CC Name | CC ID | Versions | Status | Category |
+|---------|-------|----------|--------|----------|
+| CRC-16 Encapsulation | unknown | v1 | Active | transport |
+| Multi Channel | 0x60 | v3-4 | Active | transport |
+| Multi Command | unknown | v1 | Active | transport |
+| Security 0 (S0) | unknown | v1 | Active | transport |
+| Security 2 (S2) | unknown | v1-2 | Active | transport |
+| Supervision | 0x6C | v1-2 | Active | transport |
+| Transport Service | 0x55 | v1-2 | Active | transport |
+```
+
+#### `get_command_class(name="Dor Lok")`
+
+Fuzzy-matches to "Door Lock":
+
+```
+# Door Lock Command Class, v1-4
+- **CC ID**: 0x62
+- **Versions**: 1, 2, 3, 4
+- **Section**: 2.2.38
+- **Source**: https://github.com/zwave-js/specs/blob/master/Z-Wave%20...
+- **Status**: Active
+
+---
+
+Door Lock Command Class, version 1-2
+=============================================
+
+The Door Lock Command Class is used to operate and configure a door lock device.
+... (2000+ more lines of full spec text)
+```
+
+#### `search_command_classes(query="thermostat setpoint", max_results=3)`
+
+```
+# Search Results for 'thermostat setpoint'
+
+## Thermostat Setpoint (0x43, v1-3)
+- Section: 2.2.116
+- Score: 26468.7
+- Snippet: Thermostat Setpoint Command Class, version 1-2 ...
+
+## Thermostat Mode (0x40, v1-3)
+- Section: 2.2.111
+- Score: 1144.1
+
+## Thermostat Fan Mode (0x44, v1-5)
+- Section: 2.2.106
+- Score: 414.4
+```
+
+#### `get_cc_commands(name="Door Lock")`
+
+```
+# Door Lock Command Class (0x62)
+
+Source: `ZW_classcmd.h`
+
+## Commands
+
+| Command | Opcode |
+|---------|--------|
+| DOOR_LOCK_OPERATION_SET_V3 | 0x01 |
+| DOOR_LOCK_OPERATION_GET_V3 | 0x02 |
+| DOOR_LOCK_OPERATION_REPORT_V3 | 0x03 |
+| DOOR_LOCK_CONFIGURATION_SET_V3 | 0x04 |
+...
+
+## Frame Structures
+
+### DOOR_LOCK_OPERATION_SET_V3_FRAME
+| Field | Type |
+|-------|------|
+| cmdClass | BYTE |
+| cmd | BYTE |
+| doorLockMode | BYTE |
+...
+```
+
+#### `lookup_manufacturer(name="Aeotec")`
+
+```
+# Manufacturers
+
+*Filtered by: 'Aeotec' — 1 results*
+
+| Customer | ID | Formerly know as |
+|----------|-----|------------------|
+| Aeotec Ltd. | 0x0371 | |
+```
+
+#### `get_lifeline_requirements(command_class="Door Lock")`
+
+```
+# Lifeline Association Commands
+
+*Filtered by: 'Door Lock' — 2 results*
+
+| Command Class | Command | Conditions and triggers |
+|---------------|---------|------------------------|
+| Door Lock | Door Lock Operation Report | ... |
+| Door Lock | Notification Report | ... |
+```
+
+#### `get_spec_section(pdf="network_layer")`
+
+```
+# network_layer — Table of Contents
+
+- **1**: 1 Abbreviations (pages 11-11)
+- **6**: 2.4 Network layer specification (pages 12-12)
+- **7**: 2.5 Glossary (pages 13-13)
+- **9**: 3.1 The Z-Wave protocol stack architecture (pages 14-15)
+- **10**: 4 Z-Wave Networking (pages 16-83)
+- **11**: 5 SmartStart (pages 84-102)
+...
+```
+
+#### `get_device_class(generic="Switch Binary")`
+
+```
+# Switch Binary (0x10)
+- **Description**: Binary Switch
+- **Source**: ZW_classcmd.h
+
+## Specific Types
+
+| Specific Type | ID | Description |
+|--------------|-----|-------------|
+| SPECIFIC_TYPE_NOT_USED | 0x00 | |
+| SPECIFIC_TYPE_POWER_SWITCH_BINARY | 0x01 | Binary Power Switch |
+| SPECIFIC_TYPE_SCENE_SWITCH_BINARY_V2 | 0x03 | Binary Scene Switch |
+| SPECIFIC_TYPE_POWER_SWITCH_BINARY_V2 | 0x04 | |
+```
+
+#### `lookup_zwave_constants(search="TRANSMIT_OPTION", header="ZW_transport_api.h")`
+
+```
+# Z-Wave Constants matching 'TRANSMIT_OPTION'
+
+*9 matches across header files*
+
+## ZW_transport_api.h
+
+| Define | Value | Description |
+|--------|-------|-------------|
+| TRANSMIT_OPTION_ACK | 0x01 | request acknowledge |
+| TRANSMIT_OPTION_LOW_POWER | 0x02 | transmit at low output power |
+| TRANSMIT_OPTION_AUTO_ROUTE | 0x04 | |
+| TRANSMIT_OPTION_RETURN_ROUTE | 0x04 | |
+| TRANSMIT_OPTION_NO_ROUTE | 0x10 | |
+| TRANSMIT_OPTION_EXPLORE | 0x20 | use explore frame if needed |
+...
+```
+
+#### `get_device_type()`
+
+```
+# Device Types
+
+- **Introduction** (pages 1161-1161)
+- **Common Z-Wave Plus v2 Device Type Requirements** (pages 1162-1181)
+- **Z-Wave Plus v2 Device Type Definition** (pages 1182-1204)
+- **Actuator supporting types** (pages 1186-1194)
+- **Reporting supporting Device Types** (pages 1195-1199)
+- **Other Device Types** (pages 1200-1201)
+- **Controlling Device Types** (pages 1202-1204)
+```
+
+#### `search_application_notes()`
+
+```
+# Z-Wave Application Notes
+
+- **`appnote_apl12955_z_wave_multi_channel_basics`**: Apl12955 Z Wave Multi Channel Basics
+- **`appnote_apl12957_z_wave_battery_support_basics`**: Apl12957 Z Wave Battery Support Basics
+- **`appnote_apl13031_z_wave_networking_basics`**: Apl13031 Z Wave Networking Basics
+- **`appnote_apl13084_z_wave_control_application_basics`**: Apl13084 Z Wave Control Application Basics
+- **`appnote_apl13128_z_wave_time_date_basics`**: Apl13128 Z Wave Time Date Basics
+- **`appnote_apl13475_z_wave_development_basics`**: Apl13475 Z Wave Development Basics
+- **`appnote_ins14259_z_wave_plus_v2_application_framework_sdk7`**: Ins14259 Z Wave Plus V2 ...
+
+Use `get_spec_section(pdf=key)` to read a specific note.
+```
+
+</details>
+
 ## Adding or Overriding Spec Documents
 
 To add a new PDF or override an existing one, use either the TOML config
