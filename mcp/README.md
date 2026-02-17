@@ -285,7 +285,6 @@ Get the full specification text for a Command Class.
 |-----------|------|-------------|
 | `name` | `str \| None` | CC name, fuzzy-matched (e.g., `"Door Lock"`) |
 | `cc_id` | `int \| None` | CC ID as integer (e.g., `98` for `0x62`) |
-| `version` | `int \| None` | Specific version number |
 
 #### search_command_classes
 

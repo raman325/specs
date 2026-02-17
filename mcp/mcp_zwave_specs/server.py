@@ -463,6 +463,7 @@ def _format_cc_header(cc: CommandClassInfo, config: Config) -> str:
     """Format the header block for a CC response."""
     lines = [f"# {cc.name} Command Class, {cc.version_str}"]
     lines.append(f"- **CC ID**: {cc.id_hex}")
+    lines.append(f"- **Versions**: {', '.join(str(v) for v in cc.versions)}")
     if cc.page_start is not None and cc.page_end is not None:
         lines.append(f"- **Section**: {cc.section_number} (pages {cc.page_start}-{cc.page_end})")
     else:
@@ -545,14 +546,12 @@ def create_server(config: Config) -> FastMCP:
         ctx: Context,
         name: str | None = None,
         cc_id: int | None = None,
-        version: int | None = None,
     ) -> str:
         """Get the full specification text for a Z-Wave Command Class.
 
         Args:
             name: CC name (e.g., "Door Lock", "Notification"). Fuzzy-matched.
             cc_id: CC ID as integer (e.g., 98 for 0x62). Alternative to name.
-            version: Specific version number (optional, returns all versions if omitted)
         """
         state = _get_state(ctx)
         if not state.config.specs_available:
@@ -566,12 +565,6 @@ def create_server(config: Config) -> FastMCP:
             if suggestions:
                 msg += f"\n\nDid you mean: {', '.join(suggestions)}?"
             return msg
-
-        if version is not None and version not in cc.versions:
-            return (
-                f"Command Class '{cc.name}' does not have version {version}. "
-                f"Available versions: {cc.version_str}"
-            )
 
         header = _format_cc_header(cc, state.config)
         return f"{header}\n\n---\n\n{cc.content}"
