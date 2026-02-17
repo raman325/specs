@@ -12,7 +12,8 @@ GITHUB_REPO = "zwave-js/specs"
 GITHUB_BRANCH = "master"
 GITHUB_BASE = f"https://github.com/{GITHUB_REPO}/blob/{GITHUB_BRANCH}"
 
-DEFAULT_CACHE_DIR = Path.home() / ".cache" / "mcp" / "zwave-specs"
+CACHE_SUBDIR = "zwave-specs"
+DEFAULT_CACHE_DIR = Path.home() / ".cache" / "mcp" / CACHE_SUBDIR
 
 DEFAULT_SUPPLEMENTARY_PDFS: dict[str, str] = {
     "network_layer": "Z-Wave and Z-Wave Long Range Network Layer Specification.pdf",
@@ -71,9 +72,11 @@ class Config:
     app_layer_rst_dir: Path | None = None
 
     def __post_init__(self) -> None:
-        """Resolve specs_dir and cache_dir to absolute paths."""
+        """Resolve paths and ensure cache_dir ends with the dedicated subdirectory."""
         self.specs_dir = Path(self.specs_dir).expanduser().resolve()
         self.cache_dir = Path(self.cache_dir).expanduser().resolve()
+        if self.cache_dir.name != CACHE_SUBDIR:
+            self.cache_dir = self.cache_dir / CACHE_SUBDIR
         if self.app_layer_rst_dir is not None:
             self.app_layer_rst_dir = Path(self.app_layer_rst_dir).expanduser().resolve()
 
@@ -196,7 +199,10 @@ class Config:
         if "specs_dir" in data:
             self.specs_dir = Path(data["specs_dir"]).expanduser().resolve()
         if "cache_dir" in data:
-            self.cache_dir = Path(data["cache_dir"]).expanduser().resolve()
+            cache_dir = Path(data["cache_dir"]).expanduser().resolve()
+            if cache_dir.name != CACHE_SUBDIR:
+                cache_dir = cache_dir / CACHE_SUBDIR
+            self.cache_dir = cache_dir
         if "app_layer_rst_dir" in data:
             self.app_layer_rst_dir = Path(data["app_layer_rst_dir"]).expanduser().resolve()
 

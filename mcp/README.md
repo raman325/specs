@@ -97,7 +97,7 @@ environment variables -- see
         // Override the specs checkout location
         "ZWAVE_SPECS_MCP_SPECS_DIR": "/custom/path/to/specs",
         // Override the cache directory
-        "ZWAVE_SPECS_MCP_CACHE_DIR": "/tmp/zwave-cache"
+        "ZWAVE_SPECS_MCP_CACHE_DIR": "/tmp"
         // Use RST source instead of PDF for the application layer spec:
         // "ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR": "/path/to/rst-source/source"
       }
@@ -164,7 +164,7 @@ these built-in defaults:
 | Setting | Default |
 |---------|---------|
 | `specs_dir` | Auto-detected (two levels up from the package directory) |
-| `cache_dir` | `~/.cache/mcp/zwave-specs` |
+| `cache_dir` | `~/.cache/mcp/zwave-specs` (`zwave-specs` is appended automatically if missing) |
 | `app_layer_rst_dir` | Not set (uses PDF by default) |
 | `app_layer_pdf` | `Z-Wave Specification AWG V5.0.pdf` |
 | `header_file` | `API_includes/ZW_classcmd.h` |
@@ -194,7 +194,7 @@ optional; only specified values override the defaults.
 ```toml
 # Base directories
 specs_dir = "~/projects/specs"
-cache_dir = "~/.cache/mcp/zwave-specs"
+cache_dir = "~/.cache/mcp"  # zwave-specs/ is appended automatically
 
 # RST source directory (alternative to app layer PDF)
 # app_layer_rst_dir = "~/projects/rst-source/source"

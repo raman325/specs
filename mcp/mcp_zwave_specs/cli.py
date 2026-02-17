@@ -7,26 +7,20 @@ import logging
 import shutil
 from pathlib import Path
 
-from mcp_zwave_specs.config import DEFAULT_CACHE_DIR, Config
+from mcp_zwave_specs.config import CACHE_SUBDIR, DEFAULT_CACHE_DIR, Config
 
 logger = logging.getLogger(__name__)
 
 
-def _is_unsafe_cache_path(path: Path) -> bool:
-    """Return True if deleting this path would be dangerous."""
-    # Block root and direct children of root (/, /tmp, /var, /run, etc.)
-    if len(path.parts) < 3:
-        return True
-    # Must not be the home directory or an ancestor of it
-    home = Path.home().resolve()
-    return path == home or home.is_relative_to(path)
-
-
 def _clear_cache(cache_dir: Path) -> None:
-    """Remove the cache directory with safety checks against dangerous paths."""
+    """Remove the cache directory after verifying it's a dedicated zwave-specs dir."""
     resolved = cache_dir.resolve()
-    if _is_unsafe_cache_path(resolved):
-        logger.error("Refusing to delete unsafe cache path: %s", resolved)
+    if resolved.name != CACHE_SUBDIR:
+        logger.error(
+            "Refusing to clear cache: path does not end with '%s': %s",
+            CACHE_SUBDIR,
+            resolved,
+        )
         return
     if not resolved.exists():
         return
@@ -83,7 +77,10 @@ def build_config(args: argparse.Namespace) -> Config:
     if args.specs_dir is not None:
         config.specs_dir = args.specs_dir.expanduser().resolve()
     if args.cache_dir is not None:
-        config.cache_dir = args.cache_dir.expanduser().resolve()
+        cache_dir = args.cache_dir.expanduser().resolve()
+        if cache_dir.name != CACHE_SUBDIR:
+            cache_dir = cache_dir / CACHE_SUBDIR
+        config.cache_dir = cache_dir
     if args.app_layer_rst_dir is not None:
         config.app_layer_rst_dir = args.app_layer_rst_dir.expanduser().resolve()
     return config
