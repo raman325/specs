@@ -37,6 +37,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=f"Cache directory (default: $ZWAVE_SPECS_MCP_CACHE_DIR or {DEFAULT_CACHE_DIR})",
     )
     parser.add_argument(
+        "--app-layer-rst-dir",
+        type=Path,
+        default=None,
+        help="Path to RST source directory for the application layer spec (alternative to PDF)",
+    )
+    parser.add_argument(
         "--clear-cache",
         action="store_true",
         help="Clear the cache directory before starting",
@@ -53,6 +59,8 @@ def build_config(args: argparse.Namespace) -> Config:
         config.specs_dir = args.specs_dir.resolve()
     if args.cache_dir is not None:
         config.cache_dir = args.cache_dir.resolve()
+    if args.app_layer_rst_dir is not None:
+        config.app_layer_rst_dir = args.app_layer_rst_dir.resolve()
     return config
 
 

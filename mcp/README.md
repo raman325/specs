@@ -30,6 +30,20 @@ If the `mcp/` directory lives inside the specs checkout (the default
 layout of this repository), the specs directory is auto-detected and
 `--specs-dir` can be omitted.
 
+#### RST Source Alternative
+
+If you have the application layer spec as RST/Sphinx source (e.g. a
+draft build directory), you can use it instead of the PDF. RST source
+provides higher-fidelity text without PDF extraction artifacts.
+
+```bash
+uv run python -m mcp_zwave_specs --app-layer-rst-dir /path/to/rst-source/source
+```
+
+When configured, RST source is used for CC sections and chapter
+sections (device types, role types, CC control). All other spec
+documents still come from PDFs in `specs_dir`.
+
 ### Development Mode
 
 To open the MCP Inspector test UI for interactive tool testing:
@@ -84,6 +98,8 @@ environment variables -- see
         "ZWAVE_SPECS_MCP_SPECS_DIR": "/custom/path/to/specs",
         // Override the cache directory
         "ZWAVE_SPECS_MCP_CACHE_DIR": "/tmp/zwave-cache"
+        // Use RST source instead of PDF for the application layer spec:
+        // "ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR": "/path/to/rst-source/source"
       }
     }
   }
@@ -149,6 +165,7 @@ these built-in defaults:
 |---------|---------|
 | `specs_dir` | Auto-detected (two levels up from the package directory) |
 | `cache_dir` | `~/.cache/mcp/zwave-specs` |
+| `app_layer_rst_dir` | Not set (uses PDF by default) |
 | `app_layer_pdf` | `Z-Wave Specification AWG V5.0.pdf` |
 | `header_file` | `API_includes/ZW_classcmd.h` |
 | `cc_list_xlsx` | `Z-Wave Command Classes Specifications/List of defined Z-Wave Command Classes.xlsx` |
@@ -165,6 +182,7 @@ PDF groups (`supplementary_pdfs`, `test_pdfs`, `legacy_pdfs`,
 |------|-------------|
 | `--specs-dir PATH` | Path to zwave-js/specs checkout |
 | `--cache-dir PATH` | Cache directory (default: `~/.cache/mcp/zwave-specs`) |
+| `--app-layer-rst-dir PATH` | RST source directory for application layer spec (alternative to PDF) |
 | `--config PATH` | Path to TOML configuration file |
 | `--clear-cache` | Clear cache before starting |
 
@@ -177,6 +195,9 @@ optional; only specified values override the defaults.
 # Base directories
 specs_dir = "~/projects/specs"
 cache_dir = "~/.cache/mcp/zwave-specs"
+
+# RST source directory (alternative to app layer PDF)
+# app_layer_rst_dir = "~/projects/rst-source/source"
 
 # Individual file path overrides (relative to specs_dir)
 [paths]
@@ -222,6 +243,8 @@ Base directories:
 
 - `ZWAVE_SPECS_MCP_SPECS_DIR` -- path to the specs checkout
 - `ZWAVE_SPECS_MCP_CACHE_DIR` -- cache directory
+- `ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR` -- RST source directory (alternative to PDF)
+
 Individual path overrides use the `ZWAVE_SPECS_MCP_` prefix with the key name in
 uppercase:
 

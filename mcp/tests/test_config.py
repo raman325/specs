@@ -106,3 +106,47 @@ def test_merge_toml_cache_dir(tmp_path):
     config = Config(specs_dir=Path("/specs"))
     config.merge_toml(toml_file)
     assert config.cache_dir == Path("/toml/cache")
+
+
+# --- app_layer_rst_dir ---
+
+
+def test_app_layer_rst_dir_default_none():
+    config = Config(specs_dir=Path("/fake"))
+    assert config.app_layer_rst_dir is None
+    assert config.app_layer_rst_available is False
+
+
+def test_app_layer_rst_dir_set_resolves(tmp_path):
+    rst_dir = tmp_path / "source"
+    rst_dir.mkdir()
+    config = Config(specs_dir=Path("/fake"), app_layer_rst_dir=rst_dir)
+    assert config.app_layer_rst_dir == rst_dir.resolve()
+    assert config.app_layer_rst_available is True
+
+
+def test_app_layer_rst_dir_nonexistent():
+    config = Config(specs_dir=Path("/fake"), app_layer_rst_dir=Path("/nonexistent"))
+    assert config.app_layer_rst_available is False
+
+
+def test_from_env_app_layer_rst_dir(monkeypatch, tmp_path):
+    rst_dir = tmp_path / "source"
+    rst_dir.mkdir()
+    monkeypatch.setenv("ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR", str(rst_dir))
+    config = Config.from_env()
+    assert config.app_layer_rst_dir == rst_dir.resolve()
+
+
+def test_from_env_app_layer_rst_dir_not_treated_as_path_override(monkeypatch):
+    monkeypatch.setenv("ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR", "/some/path")
+    config = Config.from_env()
+    assert "app_layer_rst_dir" not in config.path_overrides
+
+
+def test_merge_toml_app_layer_rst_dir(tmp_path):
+    toml_file = tmp_path / "config.toml"
+    toml_file.write_text('app_layer_rst_dir = "/toml/rst/source"\n')
+    config = Config(specs_dir=Path("/specs"))
+    config.merge_toml(toml_file)
+    assert config.app_layer_rst_dir == Path("/toml/rst/source")

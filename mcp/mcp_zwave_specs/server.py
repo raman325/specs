@@ -75,12 +75,12 @@ class AppState:
     _header_constants_loaded: bool = False
 
     def _ensure_app_layer(self) -> None:
-        """Load CC sections from cache or extract from the application layer PDF."""
+        """Load CC sections from cache or extract from RST source / PDF."""
         if self._app_layer_loaded:
             return
         self._app_layer_loaded = True
 
-        if not self.config.specs_available:
+        if not self.config.specs_available and not self.config.app_layer_rst_available:
             return
 
         # Try cache first
@@ -99,12 +99,20 @@ class AppState:
                 logger.info("Loaded %d CC sections from cache", len(self.cc_sections))
                 return
 
-        # Extract from PDF
-        logger.info(
-            "Extracting CC sections from application layer PDF (this may take a moment)..."
-        )
-        pages = extract_pages(self.config.app_layer_pdf)
-        sections = split_app_layer_sections(pages)
+        # Extract from RST source or PDF
+        if self.config.app_layer_rst_available:
+            from mcp_zwave_specs.extractors.app_layer_rst import (
+                split_app_layer_sections_rst,
+            )
+
+            logger.info("Extracting CC sections from RST source...")
+            sections = split_app_layer_sections_rst(self.config.app_layer_rst_dir)
+        else:
+            logger.info(
+                "Extracting CC sections from application layer PDF (this may take a moment)..."
+            )
+            pages = extract_pages(self.config.app_layer_pdf)
+            sections = split_app_layer_sections(pages)
         self.cc_sections = group_cc_versions(sections)
 
         # Merge CC IDs from header data
@@ -312,12 +320,12 @@ class AppState:
         self.cache.mark_valid()
 
     def _ensure_app_layer_chapters(self) -> None:
-        """Load application layer chapter sections from cache or PDF."""
+        """Load application layer chapter sections from cache, RST source, or PDF."""
         if self._app_layer_chapters_loaded:
             return
         self._app_layer_chapters_loaded = True
 
-        if not self.config.specs_available:
+        if not self.config.specs_available and not self.config.app_layer_rst_available:
             return
 
         if self.cache.is_valid() and self.cache.has_category("app_layer_chapters"):
@@ -332,15 +340,25 @@ class AppState:
                 )
                 return
 
-        # Extract from application layer PDF
-        from mcp_zwave_specs.extractors.app_layer import APP_LAYER_CHAPTERS
+        # Extract from RST source or PDF
+        if self.config.app_layer_rst_available:
+            from mcp_zwave_specs.extractors.app_layer_rst import (
+                extract_app_layer_chapter_sections_rst,
+            )
 
-        logger.info("Extracting application layer chapter sections...")
-        pages = extract_pages(self.config.app_layer_pdf)
-        for chapter_title, key in APP_LAYER_CHAPTERS.items():
-            sections = extract_app_layer_chapter_sections(pages, chapter_title)
-            if sections:
-                self.app_layer_chapters[key] = sections
+            logger.info("Extracting chapter sections from RST source...")
+            self.app_layer_chapters = extract_app_layer_chapter_sections_rst(
+                self.config.app_layer_rst_dir
+            )
+        else:
+            from mcp_zwave_specs.extractors.app_layer import APP_LAYER_CHAPTERS
+
+            logger.info("Extracting application layer chapter sections...")
+            pages = extract_pages(self.config.app_layer_pdf)
+            for chapter_title, key in APP_LAYER_CHAPTERS.items():
+                sections = extract_app_layer_chapter_sections(pages, chapter_title)
+                if sections:
+                    self.app_layer_chapters[key] = sections
 
         # Cache
         keys = list(self.app_layer_chapters.keys())

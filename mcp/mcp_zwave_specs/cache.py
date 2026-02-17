@@ -15,15 +15,22 @@ logger = logging.getLogger(__name__)
 CACHE_VERSION = 1
 
 
-def _compute_specs_hash(specs_dir: Path) -> str:
-    """Hash specs directory contents by file sizes and mtimes for invalidation."""
+def _compute_specs_hash(specs_dir: Path, extra_dirs: list[Path] | None = None) -> str:
+    """Hash specs directory contents by file sizes and mtimes for invalidation.
+
+    When extra_dirs are provided (e.g. an RST source directory), their contents
+    are included in the hash so cache is invalidated when they change.
+    """
     h = hashlib.sha256()
-    if not specs_dir.is_dir():
-        return "missing"
-    for p in sorted(specs_dir.rglob("*")):
-        if p.is_file():
-            stat = p.stat()
-            h.update(f"{p.relative_to(specs_dir)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+    dirs_to_hash = [specs_dir] + (extra_dirs or [])
+    for d in dirs_to_hash:
+        if not d.is_dir():
+            h.update(f"missing:{d}".encode())
+            continue
+        for p in sorted(d.rglob("*")):
+            if p.is_file():
+                stat = p.stat()
+                h.update(f"{p.relative_to(d)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
     return h.hexdigest()[:16]
 
 
@@ -70,19 +77,27 @@ class CacheManager:
         self.ensure_dirs()
         self.manifest_path.write_text(json.dumps(self._manifest or {}, indent=2))
 
+    def _extra_dirs(self) -> list[Path] | None:
+        """Return extra directories to include in hash computation."""
+        if self.config.app_layer_rst_available:
+            return [self.config.app_layer_rst_dir]
+        return None
+
     def is_valid(self) -> bool:
         """Check if the cache is valid against the current specs directory."""
         manifest = self._load_manifest()
         if manifest.get("version") != CACHE_VERSION:
             return False
-        current_hash = _compute_specs_hash(self.config.specs_dir)
+        current_hash = _compute_specs_hash(self.config.specs_dir, self._extra_dirs())
         return manifest.get("specs_hash") == current_hash
 
     def mark_valid(self) -> None:
         """Update manifest with current specs hash."""
         self._manifest = self._load_manifest()
         self._manifest["version"] = CACHE_VERSION
-        self._manifest["specs_hash"] = _compute_specs_hash(self.config.specs_dir)
+        self._manifest["specs_hash"] = _compute_specs_hash(
+            self.config.specs_dir, self._extra_dirs()
+        )
         self._save_manifest()
 
     def has_category(self, category: str) -> bool:

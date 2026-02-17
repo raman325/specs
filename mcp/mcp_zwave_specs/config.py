@@ -68,16 +68,24 @@ class Config:
     legacy_pdfs: dict[str, str] = field(default_factory=lambda: dict(DEFAULT_LEGACY_PDFS))
     standalone_pdfs: dict[str, str] = field(default_factory=lambda: dict(DEFAULT_STANDALONE_PDFS))
     path_overrides: dict[str, str] = field(default_factory=dict)
+    app_layer_rst_dir: Path | None = None
 
     def __post_init__(self) -> None:
         """Resolve specs_dir and cache_dir to absolute paths."""
         self.specs_dir = Path(self.specs_dir).resolve()
         self.cache_dir = Path(self.cache_dir).resolve()
+        if self.app_layer_rst_dir is not None:
+            self.app_layer_rst_dir = Path(self.app_layer_rst_dir).resolve()
 
     @property
     def specs_available(self) -> bool:
         """Return True if the specs directory exists on disk."""
         return self.specs_dir.is_dir()
+
+    @property
+    def app_layer_rst_available(self) -> bool:
+        """Return True if an RST source directory is configured and exists."""
+        return self.app_layer_rst_dir is not None and self.app_layer_rst_dir.is_dir()
 
     @property
     def app_layer_pdf(self) -> Path:
@@ -142,7 +150,13 @@ class Config:
         specs_dir = os.environ.get("ZWAVE_SPECS_MCP_SPECS_DIR", str(_pkg_dir.parent.parent))
         cache_dir = os.environ.get("ZWAVE_SPECS_MCP_CACHE_DIR", str(DEFAULT_CACHE_DIR))
 
-        config = cls(specs_dir=Path(specs_dir), cache_dir=Path(cache_dir))
+        rst_dir = os.environ.get("ZWAVE_SPECS_MCP_APP_LAYER_RST_DIR")
+
+        config = cls(
+            specs_dir=Path(specs_dir),
+            cache_dir=Path(cache_dir),
+            app_layer_rst_dir=Path(rst_dir) if rst_dir else None,
+        )
 
         # Known category group prefixes
         groups = {
@@ -152,7 +166,7 @@ class Config:
             "STANDALONE_PDFS": config.standalone_pdfs,
         }
         # Known top-level keys (already handled above)
-        top_level = {"SPECS_DIR", "CACHE_DIR"}
+        top_level = {"SPECS_DIR", "CACHE_DIR", "APP_LAYER_RST_DIR"}
 
         prefix = "ZWAVE_SPECS_MCP_"
         for key, value in os.environ.items():
@@ -183,6 +197,8 @@ class Config:
             self.specs_dir = Path(data["specs_dir"]).expanduser().resolve()
         if "cache_dir" in data:
             self.cache_dir = Path(data["cache_dir"]).expanduser().resolve()
+        if "app_layer_rst_dir" in data:
+            self.app_layer_rst_dir = Path(data["app_layer_rst_dir"]).expanduser().resolve()
 
         # Individual path overrides
         for key, value in data.get("paths", {}).items():
