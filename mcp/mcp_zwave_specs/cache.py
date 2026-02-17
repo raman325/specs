@@ -1,10 +1,15 @@
-"""Disk cache for extracted Z-Wave specification data."""
+"""Content-addressable two-layer disk cache for extracted Z-Wave specification data.
+
+Layer 1 (blobs): keyed by a hash of a single input file or directory.
+Layer 2 (composites): keyed by a hash of multiple blob hashes + optional config.
+"""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -12,140 +17,119 @@ from mcp_zwave_specs.config import Config
 
 logger = logging.getLogger(__name__)
 
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 
-
-_HASH_EXTENSIONS = frozenset({".pdf", ".xlsx", ".xls", ".h", ".rst"})
 _HASH_SKIP_DIRS = frozenset({".git", "__pycache__", ".venv", "node_modules"})
 
 
-def _compute_specs_hash(specs_dir: Path, extra_dirs: list[Path] | None = None) -> str:
-    """Hash specs directory contents by file sizes and mtimes for invalidation.
+# ---------------------------------------------------------------------------
+# Public hash helpers (used by server.py and other modules)
+# ---------------------------------------------------------------------------
 
-    Only hashes files with relevant extensions (.pdf, .xlsx, .h, .rst) and
-    skips common non-spec directories (.git, __pycache__, etc.).
 
-    When extra_dirs are provided (e.g. an RST source directory), their contents
-    are included in the hash so cache is invalidated when they change.
-    """
-    h = hashlib.sha256()
-    dirs_to_hash = [specs_dir] + (extra_dirs or [])
-    for d in dirs_to_hash:
-        if not d.is_dir():
-            h.update(f"missing:{d}".encode())
-            continue
-        for p in sorted(d.rglob("*")):
-            if any(part in _HASH_SKIP_DIRS for part in p.parts):
-                continue
-            if p.is_file() and p.suffix.lower() in _HASH_EXTENSIONS:
-                stat = p.stat()
-                h.update(f"{p.relative_to(d)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+def file_hash(path: Path) -> str:
+    """16-char hex hash of a single file (name + size + mtime)."""
+    stat = path.stat()
+    h = hashlib.sha256(f"{path.name}:{stat.st_size}:{stat.st_mtime_ns}".encode())
     return h.hexdigest()[:16]
 
 
-class CacheManager:
-    """Manages disk cache for extracted spec data.
+def dir_hash(dir_path: Path, extensions: frozenset[str] | None = None) -> str:
+    """16-char hex hash of all matching files in a directory.
 
-    Cache is invalidated when specs directory contents change (based on
-    file sizes and modification times).
+    Skips directories listed in ``_HASH_SKIP_DIRS``.
+    """
+    h = hashlib.sha256()
+    for p in sorted(dir_path.rglob("*")):
+        if any(part in _HASH_SKIP_DIRS for part in p.parts):
+            continue
+        if p.is_file() and (extensions is None or p.suffix.lower() in extensions):
+            stat = p.stat()
+            h.update(f"{p.relative_to(dir_path)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+    return h.hexdigest()[:16]
+
+
+def composite_hash(input_hashes: list[str], config_hash: str = "") -> str:
+    """16-char hex hash of sorted input hashes + config hash."""
+    h = hashlib.sha256()
+    for ih in sorted(input_hashes):
+        h.update(ih.encode())
+    if config_hash:
+        h.update(config_hash.encode())
+    return h.hexdigest()[:16]
+
+
+# ---------------------------------------------------------------------------
+# CacheManager
+# ---------------------------------------------------------------------------
+
+
+class CacheManager:
+    """Content-addressable two-layer disk cache.
+
+    * **blobs** live under ``cache_dir/blobs/<hash16>/``
+    * **composites** live under ``cache_dir/composites/<hash16>/``
+
+    Each slot can hold:
+    * ``data.json`` -- primary JSON payload
+    * ``meta.json`` -- optional metadata
+    * ``data/``     -- arbitrary sub-files (text)
     """
 
     def __init__(self, config: Config) -> None:
-        """Initialize with config; no directories are created until needed."""
         self.config = config
         self.cache_dir = config.cache_dir
-        self._manifest: dict[str, Any] | None = None
-        self._specs_hash: str | None = None
+        self._maybe_migrate()
 
-    @property
-    def manifest_path(self) -> Path:
-        """Path to the cache manifest file."""
-        return self.cache_dir / "manifest.json"
+    # -- migration ----------------------------------------------------------
 
-    def ensure_dirs(self) -> None:
-        """Create the cache directory tree if it doesn't exist."""
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        for subdir in ("app_layer_sections", "supplementary", "registries"):
-            (self.cache_dir / subdir).mkdir(exist_ok=True)
-
-    def _load_manifest(self) -> dict[str, Any]:
-        """Load the manifest from disk, or return an empty dict on first call."""
-        if self._manifest is not None:
-            return self._manifest
-        if self.manifest_path.exists():
+    def _maybe_migrate(self) -> None:
+        """If an old v1 cache is detected, clear it."""
+        manifest_path = self.cache_dir / "manifest.json"
+        if manifest_path.exists():
             try:
-                self._manifest = json.loads(self.manifest_path.read_text())
-                return self._manifest
-            except (json.JSONDecodeError, KeyError):
-                logger.warning("Corrupted cache manifest, rebuilding")
-        self._manifest = {}
-        return self._manifest
+                data = json.loads(manifest_path.read_text())
+                if data.get("version", 0) < CACHE_VERSION:
+                    logger.info(
+                        "Migrating cache from v%d to v%d",
+                        data.get("version", 0),
+                        CACHE_VERSION,
+                    )
+                    self.clear()
+            except (json.JSONDecodeError, OSError):
+                self.clear()
 
-    def _save_manifest(self) -> None:
-        """Flush the in-memory manifest to disk."""
-        self.ensure_dirs()
-        self.manifest_path.write_text(json.dumps(self._manifest or {}, indent=2))
+    # -- Layer 1: blobs -----------------------------------------------------
 
-    def _extra_dirs(self) -> list[Path] | None:
-        """Return extra directories to include in hash computation."""
-        if self.config.app_layer_rst_available:
-            return [self.config.app_layer_rst_dir]
-        return None
+    def _blob_dir(self, file_hash: str) -> Path:
+        return self.cache_dir / "blobs" / file_hash
 
-    def _get_specs_hash(self) -> str:
-        """Return the current specs hash, computing and caching it once per process."""
-        if self._specs_hash is None:
-            self._specs_hash = _compute_specs_hash(self.config.specs_dir, self._extra_dirs())
-        return self._specs_hash
+    def has_blob(self, file_hash: str) -> bool:
+        """Return True if a blob slot exists for *file_hash*."""
+        return self._blob_dir(file_hash).is_dir()
 
-    def is_valid(self) -> bool:
-        """Check if the cache is valid against the current specs directory."""
-        manifest = self._load_manifest()
-        if manifest.get("version") != CACHE_VERSION:
-            return False
-        return manifest.get("specs_hash") == self._get_specs_hash()
-
-    def mark_valid(self) -> None:
-        """Update manifest with current specs hash."""
-        self._manifest = self._load_manifest()
-        self._manifest["version"] = CACHE_VERSION
-        self._manifest["specs_hash"] = self._get_specs_hash()
-        self._save_manifest()
-
-    def has_category(self, category: str) -> bool:
-        """Return True if the given data category has been cached."""
-        manifest = self._load_manifest()
-        return category in manifest.get("categories", {})
-
-    def mark_category(self, category: str) -> None:
-        """Record that a data category has been fully cached."""
-        manifest = self._load_manifest()
-        manifest.setdefault("categories", {})[category] = True
-        self._save_manifest()
-
-    # --- JSON read/write helpers ---
-
-    def read_json(self, relative_path: str) -> Any | None:
-        """Read and deserialize a JSON cache file, or return None on miss."""
-        path = self.cache_dir / relative_path
+    def read_blob(self, file_hash: str) -> Any | None:
+        """Read ``data.json`` from a blob slot, or ``None`` on miss."""
+        path = self._blob_dir(file_hash) / "data.json"
         if not path.exists():
             return None
         try:
             return json.loads(path.read_text())
         except (json.JSONDecodeError, OSError):
-            logger.warning("Failed to read cache file %s, ignoring", relative_path)
+            logger.warning("Failed to read blob %s/data.json, ignoring", file_hash)
             return None
 
-    def write_json(self, relative_path: str, data: Any) -> None:
-        """Serialize data as JSON and write to a cache file."""
-        self.ensure_dirs()
-        path = self.cache_dir / relative_path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    def write_blob(self, file_hash: str, data: Any, meta: dict | None = None) -> None:
+        """Write ``data.json`` (and optional ``meta.json``) into a blob slot."""
+        slot = self._blob_dir(file_hash)
+        slot.mkdir(parents=True, exist_ok=True)
+        (slot / "data.json").write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        if meta is not None:
+            (slot / "meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
 
-    def read_text(self, relative_path: str) -> str | None:
-        """Read a text cache file, or return None on miss."""
-        path = self.cache_dir / relative_path
+    def read_blob_text(self, file_hash: str, rel_path: str) -> str | None:
+        """Read ``data/<rel_path>`` from a blob slot, or ``None`` on miss."""
+        path = self._blob_dir(file_hash) / "data" / rel_path
         if not path.exists():
             return None
         try:
@@ -153,18 +137,60 @@ class CacheManager:
         except OSError:
             return None
 
-    def write_text(self, relative_path: str, text: str) -> None:
-        """Write a string to a text cache file."""
-        self.ensure_dirs()
-        path = self.cache_dir / relative_path
+    def write_blob_text(self, file_hash: str, rel_path: str, text: str) -> None:
+        """Write ``data/<rel_path>`` into a blob slot."""
+        path = self._blob_dir(file_hash) / "data" / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
 
+    # -- Layer 2: composites ------------------------------------------------
+
+    def _composite_dir(self, comp_hash: str) -> Path:
+        return self.cache_dir / "composites" / comp_hash
+
+    def has_composite(self, comp_hash: str) -> bool:
+        """Return True if a composite slot exists for *comp_hash*."""
+        return self._composite_dir(comp_hash).is_dir()
+
+    def read_composite(self, comp_hash: str) -> Any | None:
+        """Read ``data.json`` from a composite slot, or ``None`` on miss."""
+        path = self._composite_dir(comp_hash) / "data.json"
+        if not path.exists():
+            return None
+        try:
+            return json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            logger.warning("Failed to read composite %s/data.json, ignoring", comp_hash)
+            return None
+
+    def write_composite(self, comp_hash: str, data: Any, meta: dict | None = None) -> None:
+        """Write ``data.json`` (and optional ``meta.json``) into a composite slot."""
+        slot = self._composite_dir(comp_hash)
+        slot.mkdir(parents=True, exist_ok=True)
+        (slot / "data.json").write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        if meta is not None:
+            (slot / "meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+
+    def read_composite_text(self, comp_hash: str, rel_path: str) -> str | None:
+        """Read ``data/<rel_path>`` from a composite slot, or ``None`` on miss."""
+        path = self._composite_dir(comp_hash) / "data" / rel_path
+        if not path.exists():
+            return None
+        try:
+            return path.read_text()
+        except OSError:
+            return None
+
+    def write_composite_text(self, comp_hash: str, rel_path: str, text: str) -> None:
+        """Write ``data/<rel_path>`` into a composite slot."""
+        path = self._composite_dir(comp_hash) / "data" / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    # -- utility ------------------------------------------------------------
+
     def clear(self) -> None:
         """Remove all cached data."""
-        import shutil
-
         if self.cache_dir.exists():
             shutil.rmtree(self.cache_dir)
-        self._manifest = None
         logger.info("Cache cleared: %s", self.cache_dir)

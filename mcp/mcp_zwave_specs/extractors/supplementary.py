@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import logging
-import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from mcp_zwave_specs.config import Config
@@ -148,42 +146,3 @@ def _collect_pdf_paths(config: Config) -> list[tuple[str, Path]]:
             pairs.append((key, pdf_path))
 
     return pairs
-
-
-def extract_supplementary(
-    config: Config,
-) -> tuple[dict[str, list[SpecSection]], dict[str, Path]]:
-    """Extract and split all supplementary PDFs in parallel.
-
-    Returns (sections_by_key, paths_by_key) where:
-      - sections_by_key: pdf_key → list of SpecSection
-      - paths_by_key: pdf_key → resolved filesystem Path
-    """
-    pairs = _collect_pdf_paths(config)
-    if not pairs:
-        return {}, {}
-
-    # Build path lookup from all collected pairs
-    paths: dict[str, Path] = {key: pdf_path for key, pdf_path in pairs}
-
-    logger.info("Extracting %d supplementary PDFs in parallel...", len(pairs))
-    start = time.monotonic()
-    result: dict[str, list[SpecSection]] = {}
-
-    with ProcessPoolExecutor() as executor:
-        futures = {
-            executor.submit(_extract_pdf_safe, pdf_path, key): key for key, pdf_path in pairs
-        }
-        for future in as_completed(futures):
-            key, sections = future.result()
-            if sections is not None:
-                result[key] = sections
-
-    elapsed = time.monotonic() - start
-    logger.info(
-        "Extracted %d supplementary PDFs (%d total sections) in %.1fs",
-        len(result),
-        sum(len(s) for s in result.values()),
-        elapsed,
-    )
-    return result, paths
