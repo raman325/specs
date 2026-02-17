@@ -312,8 +312,7 @@ Look up Notification CC types and events.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `notification_type` | `str \| None` | Filter by type name (e.g., `"Smoke"`, `"Access Control"`) |
-| `event` | `str \| None` | Search for event text |
+| `search` | `str \| None` | Search by type name (e.g., `"Smoke"`) or event text (e.g., `"intrusion"`). Omit to list all. |
 
 #### lookup_sensor_type
 

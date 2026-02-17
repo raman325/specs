@@ -669,14 +669,13 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool()
     async def lookup_notification(
         ctx: Context,
-        notification_type: str | None = None,
-        event: str | None = None,
+        search: str | None = None,
     ) -> str:
         """Look up Notification CC types and events.
 
         Args:
-            notification_type: Filter by type name (e.g., "Smoke", "Access Control")
-            event: Search for specific event text
+            search: Search by type name (e.g., "Smoke", "Access Control") or
+                event text (e.g., "door", "intrusion"). Omit to list all.
         """
         state = _get_state(ctx)
         if not state.config.specs_available:
@@ -687,9 +686,7 @@ def create_server(config: Config) -> FastMCP:
         if not reg:
             return "Notification registry not available."
 
-        return _format_registry_search(
-            reg, notification_type or event, ["Notification Type", "col_1"]
-        )
+        return _format_registry_search(reg, search, ["Notification Type", "col_1"])
 
     @mcp.tool()
     async def lookup_sensor_type(
@@ -1129,7 +1126,8 @@ def create_server(config: Config) -> FastMCP:
         Args:
             pdf: Specific test spec key (e.g., "test_phy", "test_mac",
                 "test_network", "test_lr_phy"). Omit to list available.
-            search: Search text within a specific test spec. Requires pdf.
+            search: Search text. Searches within pdf if provided, otherwise
+                searches across all test specs.
         """
         state = _get_state(ctx)
         if not state.config.specs_available:
@@ -1153,8 +1151,9 @@ def create_server(config: Config) -> FastMCP:
         Args:
             pdf: Specific legacy spec key (e.g., "legacy_500_app_guide",
                 "legacy_500_serial_api"). Omit to list available.
-            section: Section title to retrieve.
-            search: Search text within the spec.
+            section: Section title to retrieve (requires pdf).
+            search: Search text. Searches within pdf if provided, otherwise
+                searches across all legacy specs.
         """
         state = _get_state(ctx)
         if not state.config.specs_available:
