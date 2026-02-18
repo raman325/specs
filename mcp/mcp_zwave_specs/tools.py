@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from difflib import get_close_matches
 
 from fastmcp import Context
@@ -31,6 +32,15 @@ def _get_state(ctx: Context) -> AppState:
     return ctx.request_context.lifespan_context["app_state"]
 
 
+async def _load(ctx: Context, *steps: tuple[Callable[[], None], str]) -> None:
+    """Run blocking load steps with progress reporting."""
+    total = len(steps)
+    for i, (func, label) in enumerate(steps):
+        await ctx.report_progress(progress=i, total=total, message=label)
+        await asyncio.to_thread(func)
+    await ctx.report_progress(progress=total, total=total)
+
+
 # --- Command Class Tools ---
 
 
@@ -49,8 +59,11 @@ async def list_command_classes(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_app_layer)
-    await asyncio.to_thread(state.ensure_header)
+    await _load(
+        ctx,
+        (state.ensure_app_layer, "Loading command class specifications"),
+        (state.ensure_header, "Loading header data"),
+    )
 
     lines = ["# Z-Wave Command Classes\n"]
     lines.append("| CC Name | CC ID | Versions | Status | Category |")
@@ -87,6 +100,7 @@ async def get_command_class(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
+    await _load(ctx, (state.ensure_app_layer, "Loading command class specifications"))
     cc = await asyncio.to_thread(state.find_cc, name, cc_id)
     if cc is None:
         search_term = name or (f"0x{cc_id:02X}" if cc_id else "unknown")
@@ -115,7 +129,7 @@ async def search_command_classes(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_app_layer)
+    await _load(ctx, (state.ensure_app_layer, "Loading command class specifications"))
 
     results = state.search_index.search(query, max_results=max_results)
     if not results:
@@ -149,7 +163,7 @@ async def get_cc_commands(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_header)
+    await _load(ctx, (state.ensure_header, "Loading header data"))
 
     # Find by ID or name
     hd = None
@@ -212,7 +226,7 @@ async def lookup_notification(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_registries)
+    await _load(ctx, (state.ensure_registries, "Loading registries"))
     reg = state.registries.get("notification_types")
     if not reg:
         return "Notification registry not available."
@@ -233,7 +247,7 @@ async def lookup_sensor_type(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_registries)
+    await _load(ctx, (state.ensure_registries, "Loading registries"))
     reg = state.registries.get("sensor_types")
     if not reg:
         return "Sensor type registry not available."
@@ -256,7 +270,7 @@ async def lookup_manufacturer(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_registries)
+    await _load(ctx, (state.ensure_registries, "Loading registries"))
     reg = state.registries.get("manufacturers")
     if not reg:
         return "Manufacturer registry not available."
@@ -282,7 +296,7 @@ async def lookup_registry(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_registries)
+    await _load(ctx, (state.ensure_registries, "Loading registries"))
     reg = state.registries.get(registry)
     if not reg:
         available = ", ".join(sorted(state.registries.keys()))
@@ -307,7 +321,7 @@ async def get_lifeline_requirements(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_registries)
+    await _load(ctx, (state.ensure_registries, "Loading registries"))
     reg = state.registries.get("lifeline_association_commands")
     if not reg:
         return "Lifeline association registry not available."
@@ -337,7 +351,7 @@ async def get_spec_section(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_supplementary)
+    await _load(ctx, (state.ensure_supplementary, "Loading supplementary specifications"))
     sections = state.supplementary.get(pdf)
     if not sections:
         available = ", ".join(sorted(state.supplementary.keys()))
@@ -391,6 +405,13 @@ async def list_spec_documents(ctx: Context) -> str:
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
+    await _load(
+        ctx,
+        (state.ensure_app_layer_chapters, "Loading application layer chapters"),
+        (state.ensure_supplementary, "Loading supplementary specifications"),
+        (state.ensure_registries, "Loading registries"),
+    )
+
     lines = ["# Available Z-Wave Specification Documents\n"]
 
     # CC Specs from application layer document
@@ -398,7 +419,6 @@ async def list_spec_documents(ctx: Context) -> str:
     lines.append("Use `get_command_class()` or `list_command_classes()` to access.\n")
 
     # CC spec chapters (device types, role types, CC control)
-    await asyncio.to_thread(state.ensure_app_layer_chapters)
     if state.app_layer_chapters:
         lines.append("## Application Layer Chapters")
         for key, sections in sorted(state.app_layer_chapters.items()):
@@ -411,7 +431,6 @@ async def list_spec_documents(ctx: Context) -> str:
         lines.append("")
 
     # Supplementary PDFs — grouped by category
-    await asyncio.to_thread(state.ensure_supplementary)
     if state.supplementary:
         # Group by prefix
         categories = {
@@ -444,7 +463,6 @@ async def list_spec_documents(ctx: Context) -> str:
             lines.append("")
 
     # Registries
-    await asyncio.to_thread(state.ensure_registries)
     if state.registries:
         lines.append("## Registries")
         lines.append("Use `lookup_registry(registry=key)` to access.\n")
@@ -472,7 +490,7 @@ async def get_device_type(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_app_layer_chapters)
+    await _load(ctx, (state.ensure_app_layer_chapters, "Loading application layer chapters"))
     return search_app_layer_chapter(
         state.app_layer_chapters.get("device_types", []), state.config, "Device Types", name
     )
@@ -493,7 +511,7 @@ async def get_role_type(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_app_layer_chapters)
+    await _load(ctx, (state.ensure_app_layer_chapters, "Loading application layer chapters"))
     return search_app_layer_chapter(
         state.app_layer_chapters.get("role_types", []), state.config, "Role Types", name
     )
@@ -514,7 +532,7 @@ async def get_cc_interview_steps(
     if not state.config.specs_available and not state.config.app_layer_rst_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_app_layer_chapters)
+    await _load(ctx, (state.ensure_app_layer_chapters, "Loading application layer chapters"))
     return search_app_layer_chapter(
         state.app_layer_chapters.get("cc_control", []),
         state.config,
@@ -547,7 +565,7 @@ async def get_device_class(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_header)
+    await _load(ctx, (state.ensure_header, "Loading header data"))
 
     if not state.device_classes:
         return "No device class data found."
@@ -614,7 +632,7 @@ async def search_application_notes(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_supplementary)
+    await _load(ctx, (state.ensure_supplementary, "Loading supplementary specifications"))
     return search_supplementary_group(
         state.supplementary,
         state.supplementary_paths,
@@ -645,7 +663,7 @@ async def get_test_spec(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_supplementary)
+    await _load(ctx, (state.ensure_supplementary, "Loading supplementary specifications"))
     return search_supplementary_group(
         state.supplementary,
         state.supplementary_paths,
@@ -679,7 +697,7 @@ async def get_legacy_spec(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_supplementary)
+    await _load(ctx, (state.ensure_supplementary, "Loading supplementary specifications"))
     return search_supplementary_group(
         state.supplementary,
         state.supplementary_paths,
@@ -711,7 +729,7 @@ async def lookup_zwave_constants(
     if not state.config.specs_available:
         return CLONE_INSTRUCTIONS
 
-    await asyncio.to_thread(state.ensure_header_constants)
+    await _load(ctx, (state.ensure_header_constants, "Loading header constants"))
     if not state.header_constants:
         return "No header constants available."
 
