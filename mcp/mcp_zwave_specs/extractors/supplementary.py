@@ -62,7 +62,7 @@ def _split_by_toc(
     return sections
 
 
-def _extract_pdf_safe(pdf_path: Path, key: str) -> tuple[str, list[SpecSection] | None]:
+def extract_pdf_safe(pdf_path: Path, key: str) -> tuple[str, list[SpecSection] | None]:
     """Extract and split a single PDF, returning (key, sections) or (key, None) on failure."""
     try:
         pages = extract_pages(pdf_path)
@@ -74,7 +74,7 @@ def _extract_pdf_safe(pdf_path: Path, key: str) -> tuple[str, list[SpecSection] 
     return key, sections
 
 
-def _collect_pdf_paths(config: Config) -> list[tuple[str, Path]]:
+def collect_pdf_paths(config: Config) -> list[tuple[str, Path]]:
     """Collect all (key, pdf_path) pairs for supplementary PDFs."""
     pairs: list[tuple[str, Path]] = []
     stack_dir = config.specs_dir / "Z-Wave Stack Specifications"

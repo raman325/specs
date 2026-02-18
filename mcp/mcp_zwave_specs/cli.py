@@ -10,7 +10,8 @@ from pathlib import Path
 
 from mcp_zwave_specs.cache import CacheManager
 from mcp_zwave_specs.config import CACHE_SUBDIR, Config
-from mcp_zwave_specs.server import AppState, create_server
+from mcp_zwave_specs.server import create_server
+from mcp_zwave_specs.state import AppState
 
 logger = logging.getLogger(__name__)
 
