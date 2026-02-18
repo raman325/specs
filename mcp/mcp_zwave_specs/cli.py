@@ -21,7 +21,9 @@ def _clear_cache(cache_dir: Path) -> None:
     resolved = cache_dir.resolve()
     # Safety: only clear directories that end with our cache subdir name
     if resolved.name != CACHE_SUBDIR:
-        logger.error("Refusing to clear cache: path does not end with %s: %s", CACHE_SUBDIR, resolved)
+        logger.error(
+            "Refusing to clear cache: path does not end with %s: %s", CACHE_SUBDIR, resolved
+        )
         return
     if not resolved.exists():
         return
