@@ -7,7 +7,7 @@ name = "zwave-specs-mcp"
 version = "0.1.0"
 description = "MCP server for querying the Z-Wave specification"
 license = "AGPL-3.0-only"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2,<3",
     "pymupdf4llm>=0.0.17,<0.1",
@@ -21,7 +21,7 @@ zwave-specs-mcp = "mcp_zwave_specs.cli:main"
 packages = ["mcp_zwave_specs"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py311"
 line-length = 99
 
 [tool.ruff.lint]

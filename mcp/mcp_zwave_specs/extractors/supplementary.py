@@ -31,6 +31,9 @@ def _split_by_toc(
         content = "\n".join(p.text for p in pages)
         return [SpecSection(title=pdf_name, content=content, pdf_name=pdf_name)]
 
+    if not pages:
+        return []
+
     sections: list[SpecSection] = []
     for i, (title, start_page) in enumerate(toc_entries):
         end_page = toc_entries[i + 1][1] if i + 1 < len(toc_entries) else pages[-1].page_number + 1

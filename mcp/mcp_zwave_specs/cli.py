@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 def _clear_cache(cache_dir: Path) -> None:
     """Remove the cache directory after basic safety checks."""
     resolved = cache_dir.resolve()
-    # Safety: refuse to clear directories that don't look like our cache
-    if resolved == Path.home() or resolved == Path("/"):
-        logger.error("Refusing to clear cache: path is too broad: %s", resolved)
+    # Safety: only clear directories that end with our cache subdir name
+    if resolved.name != CACHE_SUBDIR:
+        logger.error("Refusing to clear cache: path does not end with %s: %s", CACHE_SUBDIR, resolved)
         return
     if not resolved.exists():
         return
