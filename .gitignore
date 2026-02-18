@@ -3,6 +3,5 @@ __pycache__/
 *.egg-info/
 .venv/
 .ruff_cache/
-.cache/
 .claude/
 docs/plans/

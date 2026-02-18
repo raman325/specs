@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import logging
+import threading
 import time
+from collections import defaultdict
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from difflib import get_close_matches
 from pathlib import Path
 
-from mcp_zwave_specs.cache import CacheManager, composite_hash, dir_hash, file_hash
+from mcp_zwave_specs.cache import CacheManager, dir_hash, file_hash
 from mcp_zwave_specs.config import Config
 from mcp_zwave_specs.extractors.app_layer import (
     APP_LAYER_CHAPTERS,
@@ -42,8 +45,6 @@ from mcp_zwave_specs.serialization import (
     deserialize_cc,
     deserialize_header_data,
     serialize_cc,
-    serialize_header_data,
-    serialize_spec_section,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,118 +73,90 @@ class AppState:
     # Map pdf_key → resolved filesystem Path (for supplementary PDFs)
     supplementary_paths: dict[str, Path] = field(default_factory=dict)
 
-    _app_layer_loaded: bool = False
-    _header_loaded: bool = False
-    _registries_loaded: bool = False
-    _supplementary_loaded: bool = False
-    _app_layer_chapters_loaded: bool = False
-    _header_constants_loaded: bool = False
+    _loaded: set[str] = field(default_factory=set)
+    _locks: dict[str, threading.Lock] = field(default_factory=lambda: defaultdict(threading.Lock))
 
-    # -- ensure_app_layer_blob (shared extraction for PDF path) ------------
+    # -- generic ensure helper ------------------------------------------------
+
+    def _ensure(self, category: str, loader: Callable[[], None]) -> None:
+        """Acquire the per-category lock, skip if already loaded, else run *loader*."""
+        with self._locks[category]:
+            if category in self._loaded:
+                return
+            loader()
+            self._loaded.add(category)
+
+    # -- ensure_app_layer_blob (shared extraction for PDF path) ----------------
 
     def ensure_app_layer_blob(self) -> str | None:
         """Extract app-layer PDF into a blob (CC sections + chapter sections).
 
         Returns the blob's file_hash, or None if RST source is being used.
         """
-        if self.config.app_layer_rst_available:
-            return None  # RST bypasses blob cache
+        with self._locks["app_layer_blob"]:
+            if self.config.app_layer_rst_available:
+                return None
 
-        fh = file_hash(self.config.app_layer_pdf)
-        if self.cache.has_blob(fh):
+            fh = file_hash(self.config.app_layer_pdf)
+            if self.cache.has_blob(fh):
+                return fh
+
+            logger.info("Extracting application layer PDF (this may take a moment)...")
+            pages = extract_pages(self.config.app_layer_pdf)
+
+            # CC sections
+            raw_sections = split_app_layer_sections(pages)
+            cc_sections = group_cc_versions(raw_sections)
+
+            cc_data: dict[str, dict] = {}
+            for name, cc in cc_sections.items():
+                cc_data[name] = serialize_cc(cc)
+                safe_name = name.replace("/", "_")
+                self.cache.write_blob_text(fh, f"cc/{safe_name}.md", cc.content)
+
+            # Chapter sections
+            chapter_data: dict[str, list[dict]] = {}
+            for chapter_title, key in APP_LAYER_CHAPTERS.items():
+                sections = extract_app_layer_chapter_sections(pages, chapter_title)
+                if sections:
+                    chapter_data[key] = [asdict(s) for s in sections]
+
+            blob_data = {
+                "cc_sections": cc_data,
+                "chapter_sections": chapter_data,
+            }
+            self.cache.write_blob(fh, blob_data, meta={"source": str(self.config.app_layer_pdf)})
+            logger.info(
+                "Cached app-layer blob: %d CC sections, %d chapter groups",
+                len(cc_data),
+                len(chapter_data),
+            )
             return fh
 
-        # Extract pages once
-        logger.info("Extracting application layer PDF (this may take a moment)...")
-        pages = extract_pages(self.config.app_layer_pdf)
-
-        # CC sections
-        raw_sections = split_app_layer_sections(pages)
-        cc_sections = group_cc_versions(raw_sections)
-
-        cc_data: dict[str, dict] = {}
-        for name, cc in cc_sections.items():
-            cc_data[name] = serialize_cc(cc)
-            safe_name = name.replace("/", "_")
-            self.cache.write_blob_text(fh, f"cc/{safe_name}.md", cc.content)
-
-        # Chapter sections
-        chapter_data: dict[str, list[dict]] = {}
-        for chapter_title, key in APP_LAYER_CHAPTERS.items():
-            sections = extract_app_layer_chapter_sections(pages, chapter_title)
-            if sections:
-                chapter_data[key] = [serialize_spec_section(s) for s in sections]
-
-        blob_data = {
-            "cc_sections": cc_data,
-            "chapter_sections": chapter_data,
-        }
-        self.cache.write_blob(fh, blob_data, meta={"source": str(self.config.app_layer_pdf)})
-        logger.info(
-            "Cached app-layer blob: %d CC sections, %d chapter groups",
-            len(cc_data),
-            len(chapter_data),
-        )
-        return fh
-
-    # -- ensure_app_layer --------------------------------------------------
+    # -- ensure_app_layer ------------------------------------------------------
 
     def ensure_app_layer(self) -> None:
         """Load CC sections from cache or extract from RST source / PDF."""
-        if self._app_layer_loaded:
-            return
+        self._ensure("app_layer", self._load_app_layer)
 
+    def _load_app_layer(self) -> None:
         if not self.config.specs_available and not self.config.app_layer_rst_available:
-            self._app_layer_loaded = True
             return
 
         if self.config.app_layer_rst_available:
-            # RST path: extract directly, composite keyed by rst dir + header
             logger.info("Extracting CC sections from RST source...")
             sections = split_app_layer_sections_rst(self.config.app_layer_rst_dir)
             self.cc_sections = group_cc_versions(sections)
-
             self._merge_header_ids()
-
-            # Write composite for RST path
-            rst_dh = dir_hash(self.config.app_layer_rst_dir, frozenset({".rst"}))
-            header_fh = file_hash(self.config.header_file)
-            ch = composite_hash([rst_dh, header_fh])
-            if not self.cache.has_composite(ch):
-                comp_data: dict[str, dict] = {}
-                for name, cc in self.cc_sections.items():
-                    comp_data[name] = serialize_cc(cc)
-                    safe_name = name.replace("/", "_")
-                    self.cache.write_composite_text(ch, f"cc/{safe_name}.md", cc.content)
-                self.cache.write_composite(ch, comp_data)
-
             self._build_search_index()
-            self._app_layer_loaded = True
             logger.info("Extracted %d CC sections from RST", len(self.cc_sections))
             return
 
-        # PDF path: blob + composite
+        # PDF path: load from blob, merge header IDs in-memory
         fh = self.ensure_app_layer_blob()
         if fh is None:
             return
 
-        header_fh = file_hash(self.config.header_file)
-        ch = composite_hash([fh, header_fh])
-
-        if self.cache.has_composite(ch):
-            # Load from composite (already merged with header IDs)
-            cached = self.cache.read_composite(ch)
-            if cached:
-                for name, data in cached.items():
-                    safe_name = name.replace("/", "_")
-                    content = self.cache.read_composite_text(ch, f"cc/{safe_name}.md") or ""
-                    self.cc_sections[name] = deserialize_cc(data, content)
-                self._build_search_index()
-                self._app_layer_loaded = True
-                logger.info("Loaded %d CC sections from composite cache", len(self.cc_sections))
-                return
-
-        # Load CC sections from blob, merge header IDs, write composite
         blob_data = self.cache.read_blob(fh)
         if blob_data and "cc_sections" in blob_data:
             for name, data in blob_data["cc_sections"].items():
@@ -192,18 +165,8 @@ class AppState:
                 self.cc_sections[name] = deserialize_cc(data, content)
 
         self._merge_header_ids()
-
-        # Write composite
-        comp_data = {}
-        for name, cc in self.cc_sections.items():
-            comp_data[name] = serialize_cc(cc)
-            safe_name = name.replace("/", "_")
-            self.cache.write_composite_text(ch, f"cc/{safe_name}.md", cc.content)
-        self.cache.write_composite(ch, comp_data)
-
         self._build_search_index()
-        self._app_layer_loaded = True
-        logger.info("Extracted and cached %d CC sections", len(self.cc_sections))
+        logger.info("Loaded %d CC sections", len(self.cc_sections))
 
     def _merge_header_ids(self) -> None:
         """Merge CC IDs from header data into loaded CC sections."""
@@ -219,127 +182,102 @@ class AppState:
         for name, cc in self.cc_sections.items():
             self.search_index.add(name, name, cc.content)
 
-    # -- ensure_header -----------------------------------------------------
+    # -- ensure_header ---------------------------------------------------------
 
     def ensure_header(self) -> None:
         """Load CC header data and device classes from cache or ZW_classcmd.h."""
-        if self._header_loaded:
-            return
+        self._ensure("header", self._load_header)
 
+    def _load_header(self) -> None:
         if not self.config.specs_available:
-            self._header_loaded = True
             return
 
         fh = file_hash(self.config.header_file)
 
-        if self.cache.has_blob(fh):
-            cached = self.cache.read_blob(fh)
-            if cached:
-                for name, data in cached.get("header_data", {}).items():
-                    self.header_data[name] = deserialize_header_data(data)
-                for d in cached.get("device_classes", []):
-                    self.device_classes.append(
-                        DeviceClass(
-                            generic_name=d["generic_name"],
-                            generic_id=d["generic_id"],
-                            comment=d.get("comment", ""),
-                            specific_types=[tuple(s) for s in d.get("specific_types", [])],
-                        )
+        cached = self.cache.read_blob(fh)
+        if cached:
+            for name, data in cached.get("header_data", {}).items():
+                self.header_data[name] = deserialize_header_data(data)
+            for d in cached.get("device_classes", []):
+                self.device_classes.append(
+                    DeviceClass(
+                        generic_name=d["generic_name"],
+                        generic_id=d["generic_id"],
+                        comment=d.get("comment", ""),
+                        specific_types=[tuple(s) for s in d.get("specific_types", [])],
                     )
-                self._header_loaded = True
-                logger.info("Loaded %d CC header entries from cache", len(self.header_data))
-                return
+                )
+            logger.info("Loaded %d CC header entries from cache", len(self.header_data))
+            return
 
         self.header_data = parse_header(self.config.header_file)
         self.device_classes = parse_device_classes(self.config.header_file)
 
-        # Write blob
         blob_data = {
-            "header_data": {
-                name: serialize_header_data(hd) for name, hd in self.header_data.items()
-            },
-            "device_classes": [
-                {
-                    "generic_name": dc.generic_name,
-                    "generic_id": dc.generic_id,
-                    "comment": dc.comment,
-                    "specific_types": list(dc.specific_types),
-                }
-                for dc in self.device_classes
-            ],
+            "header_data": {name: asdict(hd) for name, hd in self.header_data.items()},
+            "device_classes": [asdict(dc) for dc in self.device_classes],
         }
         self.cache.write_blob(fh, blob_data, meta={"source": str(self.config.header_file)})
-        self._header_loaded = True
 
-    # -- ensure_registries -------------------------------------------------
+    # -- ensure_registries -----------------------------------------------------
 
     def ensure_registries(self) -> None:
         """Load registry data from cache or parse Excel files."""
-        if self._registries_loaded:
-            return
+        self._ensure("registries", self._load_registries)
 
+    def _cache_or_extract_registries(
+        self,
+        fh: str,
+        extract: Callable[[], dict[str, RegistryData]],
+        source: Path,
+        label: str,
+    ) -> None:
+        """Load registries from cache or extract and cache them."""
+        cached = self.cache.read_blob(fh)
+        if cached:
+            for key, data in cached.items():
+                self.registries[key] = RegistryData(**data)
+            logger.info("Loaded %d %s from cache", len(cached), label)
+        else:
+            extracted = extract()
+            self.registries.update(extracted)
+            self.cache.write_blob(
+                fh,
+                {k: asdict(r) for k, r in extracted.items()},
+                meta={"source": str(source)},
+            )
+            logger.info("Extracted and cached %d %s", len(extracted), label)
+
+    def _load_registries(self) -> None:
         if not self.config.specs_available:
-            self._registries_loaded = True
             return
 
         reg_dir = self.config.registries_dir
         cc_xlsx = self.config.cc_list_xlsx
 
-        # Compute hashes
-        input_hashes: list[str] = []
         if reg_dir.is_dir():
-            reg_fh = dir_hash(reg_dir, frozenset({".xlsx", ".xls"}))
-            input_hashes.append(reg_fh)
+            self._cache_or_extract_registries(
+                dir_hash(reg_dir, frozenset({".xlsx", ".xls"})),
+                lambda: parse_registries(reg_dir),
+                reg_dir,
+                "registries",
+            )
         if cc_xlsx.exists():
-            cc_fh = file_hash(cc_xlsx)
-            input_hashes.append(cc_fh)
+            self._cache_or_extract_registries(
+                file_hash(cc_xlsx),
+                lambda: parse_cc_list(cc_xlsx),
+                cc_xlsx,
+                "CC list registries",
+            )
 
-        if not input_hashes:
-            self._registries_loaded = True
-            return
-
-        ch = composite_hash(input_hashes)
-
-        # Try composite first
-        if self.cache.has_composite(ch):
-            cached = self.cache.read_composite(ch)
-            if cached:
-                for key, data in cached.items():
-                    self.registries[key] = RegistryData(**data)
-                self._registries_loaded = True
-                logger.info("Loaded %d registries from composite cache", len(self.registries))
-                return
-
-        # Extract from sources
-        if reg_dir.is_dir():
-            self.registries = parse_registries(reg_dir)
-        if cc_xlsx.exists():
-            cc_data = parse_cc_list(cc_xlsx)
-            self.registries.update(cc_data)
-
-        # Write composite
-        comp_data = {
-            key: {
-                "name": reg.name,
-                "filename": reg.filename,
-                "rows": reg.rows,
-                "columns": reg.columns,
-            }
-            for key, reg in self.registries.items()
-        }
-        self.cache.write_composite(ch, comp_data)
-        self._registries_loaded = True
-        logger.info("Extracted and cached %d registries", len(self.registries))
-
-    # -- ensure_supplementary ----------------------------------------------
+    # -- ensure_supplementary --------------------------------------------------
 
     def ensure_supplementary(self) -> None:
-        """Load supplementary PDF sections from per-file blobs + composite."""
-        if self._supplementary_loaded:
-            return
+        """Load supplementary PDF sections from per-file blobs."""
+        self._ensure("supplementary", self._load_supplementary)
 
+    def _load_supplementary(self) -> None:
         if not self.config.specs_available:
-            self._supplementary_loaded = True
             return
 
         # Collect all (key, path) pairs and populate path lookup
@@ -348,7 +286,6 @@ class AppState:
             self.supplementary_paths[key] = pdf_path
 
         if not pairs:
-            self._supplementary_loaded = True
             return
 
         # Compute per-file hashes
@@ -356,33 +293,17 @@ class AppState:
         for key, pdf_path in pairs:
             blob_hashes[key] = file_hash(pdf_path)
 
-        # Check composite
-        ch = composite_hash(list(blob_hashes.values()))
-
-        if self.cache.has_composite(ch):
-            cached = self.cache.read_composite(ch)
-            if cached:
-                for key, sections_data in cached.items():
-                    self.supplementary[key] = [SpecSection(**s) for s in sections_data]
-                self._supplementary_loaded = True
-                logger.info(
-                    "Loaded %d supplementary PDFs from composite cache",
-                    len(self.supplementary),
-                )
-                return
-
         # Load from individual blobs or extract missing
         loaded: dict[str, list[SpecSection]] = {}
         to_extract: list[tuple[str, Path]] = []
 
         for key, pdf_path in pairs:
             fh = blob_hashes[key]
-            if self.cache.has_blob(fh):
-                blob_data = self.cache.read_blob(fh)
-                if blob_data:
-                    loaded[key] = [SpecSection(**s) for s in blob_data]
-                    continue
-            to_extract.append((key, pdf_path))
+            blob_data = self.cache.read_blob(fh)
+            if blob_data:
+                loaded[key] = [SpecSection(**s) for s in blob_data]
+            else:
+                to_extract.append((key, pdf_path))
 
         # Extract missing in parallel
         if to_extract:
@@ -397,12 +318,14 @@ class AppState:
                     key, sections = future.result()
                     if sections is not None:
                         loaded[key] = sections
-                        # Write blob for this file
                         fh = blob_hashes[key]
                         self.cache.write_blob(
                             fh,
-                            [serialize_spec_section(s) for s in sections],
-                            meta={"key": key, "source": str(self.supplementary_paths.get(key))},
+                            [asdict(s) for s in sections],
+                            meta={
+                                "key": key,
+                                "source": str(self.supplementary_paths.get(key)),
+                            },
                         )
             elapsed = time.monotonic() - t0
             logger.info(
@@ -412,36 +335,26 @@ class AppState:
             )
 
         self.supplementary = loaded
+        logger.info("Loaded %d supplementary PDFs", len(self.supplementary))
 
-        # Write composite
-        comp_data = {
-            key: [serialize_spec_section(s) for s in sections]
-            for key, sections in self.supplementary.items()
-        }
-        self.cache.write_composite(ch, comp_data)
-        self._supplementary_loaded = True
-        logger.info("Cached composite for %d supplementary PDFs", len(self.supplementary))
-
-    # -- ensure_app_layer_chapters -----------------------------------------
+    # -- ensure_app_layer_chapters ---------------------------------------------
 
     def ensure_app_layer_chapters(self) -> None:
         """Load application layer chapter sections from cache, RST source, or PDF."""
-        if self._app_layer_chapters_loaded:
-            return
+        self._ensure("app_layer_chapters", self._load_app_layer_chapters)
 
+    def _load_app_layer_chapters(self) -> None:
         if not self.config.specs_available and not self.config.app_layer_rst_available:
-            self._app_layer_chapters_loaded = True
             return
 
         if self.config.app_layer_rst_available:
-            # RST path: extract directly (fast)
             logger.info("Extracting chapter sections from RST source...")
             self.app_layer_chapters = extract_app_layer_chapter_sections_rst(
                 self.config.app_layer_rst_dir
             )
-            self._app_layer_chapters_loaded = True
             logger.info(
-                "Extracted %d CC spec chapter groups from RST", len(self.app_layer_chapters)
+                "Extracted %d CC spec chapter groups from RST",
+                len(self.app_layer_chapters),
             )
             return
 
@@ -454,41 +367,36 @@ class AppState:
         if blob_data and "chapter_sections" in blob_data:
             for key, sections_data in blob_data["chapter_sections"].items():
                 self.app_layer_chapters[key] = [SpecSection(**s) for s in sections_data]
-            self._app_layer_chapters_loaded = True
             logger.info(
                 "Loaded %d CC spec chapter groups from blob cache",
                 len(self.app_layer_chapters),
             )
 
-    # -- ensure_header_constants -------------------------------------------
+    # -- ensure_header_constants -----------------------------------------------
 
     def ensure_header_constants(self) -> None:
         """Load header constants from cache or parse .h files."""
-        if self._header_constants_loaded:
-            return
+        self._ensure("header_constants", self._load_header_constants)
 
+    def _load_header_constants(self) -> None:
         if not self.config.specs_available:
-            self._header_constants_loaded = True
             return
 
         api_dir = self.config.api_includes_dir
         if not api_dir.is_dir():
-            self._header_constants_loaded = True
             return
 
         fh = dir_hash(api_dir, frozenset({".h"}))
 
-        if self.cache.has_blob(fh):
-            cached = self.cache.read_blob(fh)
-            if cached:
-                for fname, items in cached.items():
-                    self.header_constants[fname] = [HeaderConstant(**c) for c in items]
-                self._header_constants_loaded = True
-                logger.info(
-                    "Loaded constants from %d header files from cache",
-                    len(self.header_constants),
-                )
-                return
+        cached = self.cache.read_blob(fh)
+        if cached:
+            for fname, items in cached.items():
+                self.header_constants[fname] = [HeaderConstant(**c) for c in items]
+            logger.info(
+                "Loaded constants from %d header files from cache",
+                len(self.header_constants),
+            )
+            return
 
         # Parse all .h files (except ZW_classcmd.h which is handled by ensure_header)
         for h_file in sorted(api_dir.glob("*.h")):
@@ -498,15 +406,12 @@ class AppState:
             if constants:
                 self.header_constants[h_file.name] = constants
 
-        # Write blob
         blob_data = {
-            fname: [{"name": c.name, "value": c.value, "comment": c.comment} for c in consts]
-            for fname, consts in self.header_constants.items()
+            fname: [asdict(c) for c in consts] for fname, consts in self.header_constants.items()
         }
         self.cache.write_blob(fh, blob_data, meta={"source": str(api_dir)})
-        self._header_constants_loaded = True
 
-    # -- build_all ----------------------------------------------------------
+    # -- build_all --------------------------------------------------------------
 
     def build_all(self) -> None:
         """Eagerly load all data categories (for cache warming)."""

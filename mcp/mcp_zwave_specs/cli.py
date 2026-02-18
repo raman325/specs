@@ -5,13 +5,10 @@ from __future__ import annotations
 import argparse
 import logging
 import shutil
-import time
 from pathlib import Path
 
-from mcp_zwave_specs.cache import CacheManager
 from mcp_zwave_specs.config import CACHE_SUBDIR, Config
 from mcp_zwave_specs.server import create_server
-from mcp_zwave_specs.state import AppState
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +67,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Clear the cache directory before starting",
     )
     parser.add_argument(
-        "--build-cache",
+        "--write-gitignore",
         action="store_true",
-        help="Build/warm the cache and exit (does not start the server)",
+        help="Build cache and write .cache/.gitignore to track pre-built blobs, then exit",
     )
     return parser.parse_args(argv)
 
@@ -99,16 +96,6 @@ def build_config(args: argparse.Namespace) -> Config:
     return config
 
 
-def _build_cache(config: Config) -> None:
-    """Eagerly load all data categories to warm the disk cache."""
-    start = time.monotonic()
-    cache = CacheManager(config)
-    state = AppState(config=config, cache=cache)
-    state.build_all()
-    elapsed = time.monotonic() - start
-    logger.info("Cache built in %.1fs: %s", elapsed, config.cache_dir)
-
-
 def main(argv: list[str] | None = None) -> None:
     """Entry point: parse args, build config, and run the MCP server."""
     logging.basicConfig(level=logging.INFO)
@@ -118,8 +105,15 @@ def main(argv: list[str] | None = None) -> None:
     if args.clear_cache:
         _clear_cache(config.cache_dir)
 
-    if args.build_cache:
-        _build_cache(config)
+    if args.write_gitignore:
+        from mcp_zwave_specs.cache import CacheManager
+        from mcp_zwave_specs.state import AppState
+
+        cache = CacheManager(config)
+        state = AppState(config=config, cache=cache)
+        state.build_all()
+        cache.write_gitignore()
+        logger.info("Wrote %s", config.cache_dir / ".gitignore")
         return
 
     server = create_server(config)

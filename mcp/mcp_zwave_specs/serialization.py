@@ -6,7 +6,6 @@ from mcp_zwave_specs.models import (
     CCCommand,
     CCHeaderData,
     CommandClassInfo,
-    SpecSection,
     StructDef,
     StructField,
 )
@@ -39,37 +38,6 @@ def deserialize_cc(data: dict, content: str = "") -> CommandClassInfo:
         content=content,
         category=data.get("category", ""),
     )
-
-
-def serialize_spec_section(s: SpecSection) -> dict:
-    """Serialize a SpecSection to a dict."""
-    return {
-        "title": s.title,
-        "content": s.content,
-        "pdf_name": s.pdf_name,
-        "section_number": s.section_number,
-        "page_start": s.page_start,
-        "page_end": s.page_end,
-    }
-
-
-def serialize_header_data(hd: CCHeaderData) -> dict:
-    """Serialize a CCHeaderData to a dict."""
-    return {
-        "name": hd.name,
-        "cc_id": hd.cc_id,
-        "commands": [
-            {"name": c.name, "opcode": c.opcode, "cc_name": c.cc_name, "cc_id": c.cc_id}
-            for c in hd.commands
-        ],
-        "structs": [
-            {
-                "name": s.name,
-                "fields": [{"name": f.name, "type": f.type, "bits": f.bits} for f in s.fields],
-            }
-            for s in hd.structs
-        ],
-    }
 
 
 def deserialize_header_data(data: dict) -> CCHeaderData:

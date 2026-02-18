@@ -45,11 +45,13 @@ sections (device types, role types, CC control). All other spec
 documents still come from PDFs in `specs_dir`.
 
 **Note:** The server uses a content-addressable disk cache — each
-source file is cached under its own hash, and composite views are
-cached under the combined hash of their inputs. Changing a single
-PDF only re-extracts that file. Switching between spec versions
-(e.g. v4 vs v5 AWG) is instant once both are warm. If you modify
-spec files, restart the server to pick up the changes.
+source file is cached under the MD5 hash of its content. Changing a
+single PDF only re-extracts that file. Switching between spec versions
+(e.g. v4 vs v5 AWG) is instant once both are warm. Because hashes are
+content-based (not mtime-based), pre-built cache blobs can be committed
+to the repository and shared across clones. Use `--write-gitignore` to
+generate a `.cache/.gitignore` that tracks pre-built blobs while
+ignoring user-generated ones.
 
 ### Development Mode
 
@@ -192,7 +194,7 @@ PDF groups (`supplementary_pdfs`, `test_pdfs`, `legacy_pdfs`,
 | `--app-layer-rst-dir PATH` | RST source directory for application layer spec (alternative to PDF) |
 | `--config PATH` | Path to TOML configuration file |
 | `--clear-cache` | Clear cache before starting |
-| `--build-cache` | Build/warm the cache and exit (does not start the server) |
+| `--write-gitignore` | Build cache and write `.cache/.gitignore` to track pre-built blobs, then exit |
 
 ### TOML Config File
 
@@ -271,7 +273,7 @@ export ZWAVE_SPECS_MCP_TEST_PDFS__TEST_SECURITY="Z-Wave Security Test Specificat
 
 ## MCP Tools Reference
 
-The server exposes 19 tools. Parameters marked with `| None` accept `null`
+The server exposes 20 tools. Parameters marked with `| None` accept `null`
 to use their default behavior.
 
 ### Command Class Tools
@@ -448,6 +450,15 @@ Search Z-Wave C header constants (`#define` values).
 |-----------|------|-------------|
 | `search` | `str` | Search text (matches define name or comment) |
 | `header` | `str \| None` | Specific header file (e.g., `"ZW_SerialAPI.h"`). Omit to search all. |
+
+### Cache Management Tools
+
+#### rebuild_cache
+
+Clear the spec cache and rebuild it from scratch in the background.
+Cancels any in-progress cache warming, clears all cached data, and starts
+a fresh background extraction. Useful after updating the specs repository.
+No parameters.
 
 ## Tool Examples
 
