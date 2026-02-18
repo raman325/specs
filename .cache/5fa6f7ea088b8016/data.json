@@ -1,0 +1,58 @@
+[
+  {
+    "title": "1.1 Purpose",
+    "content": "<!-- PAGE 4 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n## **Table of Contents**\n\n\n**1** **INTRODUCTION .......................................................................................................................... 3**\n\n\n1.1 Purpose .............................................................................................................................................. 3\n\n\n**2** **TEST SPECIFICATION ................................................................................................................... 4**\n\n\n2.1 Z-Wave Long Range QR Code ............................................................................................................. 4\n\n2.1.1 References ............................................................................................................................... 4\n\n2.1.2 Pre-requisites ........................................................................................................................... 4\n\n2.1.3 Test procedure ......................................................................................................................... 4\n\n2.2 Z-Wave Long Range requested keys during inclusion ........................................................................ 5\n\n2.2.1 References ............................................................................................................................... 5\n\n2.2.2 Pre-requisites ........................................................................................................................... 5\n\n2.2.3 Test procedure ......................................................................................................................... 5\n\n2.3 Documentation for Z-Wave Long Range ............................................................................................ 6\n\n2.3.1 References ............................................................................................................................... 6\n\n2.3.2 Pre-requisites ........................................................................................................................... 6\n\n2.3.3 Test procedure ......................................................................................................................... 6\n\n2.4 Z-Wave Long Range Controller requirements .................................................................................... 7\n\n2.4.1 References ............................................................................................................................... 7\n\n2.4.2 Pre-requisites ........................................................................................................................... 7\n\n2.4.3 Test procedure ......................................................................................................................... 7\n\n2.5 Firmware Update and QR Code validity ............................................................................................. 8\n\n2.5.1 References ............................................................................................................................... 8\n\n2.5.2 Pre-requisites ........................................................................................................................... 8\n\n2.5.3 Test procedure ......................................................................................................................... 8\n\n\n**3** **REFERENCES ............................................................................................................................... 9**\n\n\n**1** **Introduction**\n\n\n**1.1** **Purpose**\n\n\nThis document describes the list of tests to perform in order to verify compliance with the Z-Wave Plus\n\nv2 Device Type Specification.\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 3 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "2",
+    "page_start": 4,
+    "page_end": 4
+  },
+  {
+    "title": "2.1 Z-Wave Long Range QR Code",
+    "content": "<!-- PAGE 5 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**2** **Test Specification**\n\n\n**2.1** **Z-Wave Long Range QR Code**\n\n\nThis test verify that Z-Wave Long Range nodes’ QR Code complies with the associated requirements\n\n\n**2.1.1** **References**\n\n\nThis test verifies the following requirements:\n\n\n  - DT:00.11.002E.1\n\n\n**2.1.2** **Pre-requisites**\n\n\nThe DUT supports to be included with Z-Wave Long Range.\n\n\n**2.1.3** **Test procedure**\n\n\n\n\n\n\n|TestProcedure|Col2|Col3|\n|---|---|---|\n|**Step**|**Action**|**Result verification**|\n|1|Identify where the DUT’s QR Code is<br>located and scan it.|None|\n|2|Parse the scanned digits with an<br>appropriate tool|Verify that the TLV type 5 (type/critical field set to<br>10 / 0x0A) is present<br>Verify that the value of the TLV matches the<br>supported protocols<br>Bit 0 is set to 1 if Z-Wave is supported<br>Bit 1 is set to 1 is Z-Wave Long Range is<br>supported.|\n\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 4 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "4",
+    "page_start": 5,
+    "page_end": 5
+  },
+  {
+    "title": "2.2 Z-Wave Long Range requested keys during inclusion",
+    "content": "<!-- PAGE 6 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**2.2** **Z-Wave Long Range requested keys during inclusion**\n\n\nThis test verify that Z-Wave Long Range nodes comply with the inclusion requirements\n\n\n**2.2.1** **References**\n\n\nThis test verifies the following requirements:\n\n\n  - DT:00.11.002F.1\n\n\n**2.2.2** **Pre-requisites**\n\n\nThe DUT supports to be included with Z-Wave Long Range.\n\n\n**2.2.3** **Test procedure**\n\n\n\n\n\n\n|TestProcedure|Col2|Col3|\n|---|---|---|\n|**Step**|**Step**|**Step**|\n|1|Scan the DUT’s QR code in the PC<br>Controller and configure it to make a<br>Long Range SmartStart Inclusion|None|\n|2|Observe the SmartStart inclusion in the<br>Zniffer and identify the S2 Bootstrapping|Verify that the KEX Report only requested S2<br>Security Classes that require Authentication.|\n\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 5 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "5",
+    "page_start": 6,
+    "page_end": 6
+  },
+  {
+    "title": "2.3 Documentation for Z-Wave Long Range",
+    "content": "<!-- PAGE 7 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**2.3** **Documentation for Z-Wave Long Range**\n\n\nThis test verify that Z-Wave Long Range nodes comply with the documentation requirements\n\n\n**2.3.1** **References**\n\n\nThis test verifies the following requirements:\n\n\n  - DT:00.31.0017.1\n\n  - DT:00.31.0018.1\n\n\n**2.3.2** **Pre-requisites**\n\n\nThe DUT supports to be included or to include others with Z-Wave Long Range.\n\n\n**2.3.3** **Test procedure**\n\n\n\n\n\n\n|TestProcedure|Col2|Col3|\n|---|---|---|\n|**Step**|**Step**|**Step**|\n|1|Open the product documentation and<br>find the section where it describes the Z-<br>Wave Long Range capabilities|Verify if it indicates if the DUT can be included or<br>can include other nodes using Z-Wave Long Range|\n|2|If the DUT can include other nodes using<br>Z-Wave Long Range|Verify that it indicates how to change the<br>bootstrapping mode to use Z-Wave Long Range<br>for its SmartStart Provisioning List entries.|\n\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 6 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "6",
+    "page_start": 7,
+    "page_end": 7
+  },
+  {
+    "title": "2.4 Z-Wave Long Range Controller requirements",
+    "content": "<!-- PAGE 8 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**2.4** **Z-Wave Long Range Controller requirements**\n\n\nThis test verify that Z-Wave Long Range controller nodes comply with the inclusion requirements\n\n\n**2.4.1** **References**\n\n\nThis test verifies the following requirements:\n\n\n  - DT:00.11.0030.1\n\n  - DT:00.11.0031.1\n\n\n**2.4.2** **Pre-requisites**\n\n\nThe DUT supports to include other nodes with Z-Wave Long Range.\n\n\n**2.4.3** **Test procedure**\n\n\n\n\n\n\n|TestProcedure|Col2|Col3|\n|---|---|---|\n|**Step**|**Step**|**Step**|\n|1|Scan the QR Code of a Z-Wave Long<br>Range supporting node to the DUT’s<br>provisioning list<br>Alternatively, add a DSK manually if the<br>DUT does not support QR Code scanning|Verify that the DUT allows to set the<br>bootstrapping mode to “Z-Wave Long Range<br>SmartStart inclusion”|\n|2|If the DUT allows to change the granted<br>keys, try to select S2 Unauthenticated /<br>S0 as part of the granted keys|None|\n|2|Power up the supporting node<br>Observe the Z-Wave Long Range<br>SmartStart inclusion and S2<br>Bootstrapping|Verify that the DUT only grants Authenticated<br>Security Classes during S2 bootstrapping.|\n\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 7 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "7",
+    "page_start": 8,
+    "page_end": 8
+  },
+  {
+    "title": "2.5 Firmware Update and QR Code validity",
+    "content": "<!-- PAGE 9 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**2.5** **Firmware Update and QR Code validity**\n\n\nThere is no defined test for verifying the QR Code validity after a firmware update. It is practically not\n\npossible to trace possible firmware update paths.\n\n\nIf a test involves a firmware update and a tester observes a behavior not following the guidelines, the\n\ntester should inform the manufacturer.\n\n\n**2.5.1** **References**\n\n\nThis applies for the following requirements:\n\n\n  - DT:00.11.0032.1\n\n  - DT:00.13.0005.1\n\n  - DT:00.11.0033.1\n\n  - DT:00.12.0005.1\n\n\n**2.5.2** **Pre-requisites**\n\n\nNone.\n\n\n**2.5.3** **Test procedure**\n\n\nNone.\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 8 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "8",
+    "page_start": 9,
+    "page_end": 9
+  },
+  {
+    "title": "3 References",
+    "content": "<!-- PAGE 10 -->\n\nSpecification Z-Wave Plus v2 Device Type Test Specification 2021/04/15\n\n\n**3** **References**\n\n\n[1] IETF RFC 2119, Key words for use in RFC’s to Indicate Requirement Levels,\n[http://tools.ietf.org/pdf/rfc2119.pdf](http://tools.ietf.org/pdf/rfc2119.pdf)\n\n\n[2] Z-Wave Alliance, Z-Wave Plus v2 Device Type Specification.\n\n\n© 2021 Z-Wave Alliance, Inc. All Rights Reserved. This document may only be copied and distributed internally. PAGE 9 OF 9",
+    "pdf_name": "test_device_type",
+    "section_number": "9",
+    "page_start": 10,
+    "page_end": 10
+  }
+]

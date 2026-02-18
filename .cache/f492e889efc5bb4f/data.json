@@ -1,0 +1,2116 @@
+{
+  "ZW_SerialAPI.h": [
+    {
+      "name": "SOF",
+      "value": "0x01",
+      "comment": "Start Of Frame"
+    },
+    {
+      "name": "ACK",
+      "value": "0x06",
+      "comment": "Acknowledge successfull frame reception"
+    },
+    {
+      "name": "NAK",
+      "value": "0x15",
+      "comment": "Not Acknowledge successfull frame reception - please retransmit..."
+    },
+    {
+      "name": "CAN",
+      "value": "0x18",
+      "comment": "Frame received (from host) was dropped - waiting for ACK"
+    },
+    {
+      "name": "REQUEST",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "RESPONSE",
+      "value": "0x01",
+      "comment": "Flags used in FUNC_ID_SERIAL_API_GET_INIT_DATA functionality"
+    },
+    {
+      "name": "GET_INIT_DATA_FLAG_SLAVE_API",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "GET_INIT_DATA_FLAG_TIMER_SUPPORT",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "GET_INIT_DATA_FLAG_CONTROLLER_STATUS",
+      "value": "0x04",
+      "comment": "Obsolete. USE next"
+    },
+    {
+      "name": "GET_INIT_DATA_FLAG_SECONDARY_CTRL",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "GET_INIT_DATA_FLAG_IS_SUC",
+      "value": "0x08",
+      "comment": "Firmware update functionality specifics"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_GET_INIT_DATA",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_APPL_NODE_INFORMATION",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_APPLICATION_COMMAND_HANDLER",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_CONTROLLER_CAPABILITIES",
+      "value": "0x05",
+      "comment": "SERIAL API ver 4 added - START"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_SET_TIMEOUTS",
+      "value": "0x06",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_GET_CAPABILITIES",
+      "value": "0x07",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_SOFT_RESET",
+      "value": "0x08",
+      "comment": "SERIAL API ver 4 added - END"
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_PROTOCOL_VERSION",
+      "value": "0x09",
+      "comment": "Function ID for startup message"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_STARTED",
+      "value": "0x0A",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_SETUP",
+      "value": "0x0B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_APPL_NODE_INFORMATION_CMD_CLASSES",
+      "value": "0x0C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_EX",
+      "value": "0x0E",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_MULTI_EX",
+      "value": "0x0F",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_RF_RECEIVE_MODE",
+      "value": "0x10",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_SLEEP_MODE",
+      "value": "0x11",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_NODE_INFORMATION",
+      "value": "0x12",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA",
+      "value": "0x13",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_MULTI",
+      "value": "0x14",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_VERSION",
+      "value": "0x15",
+      "comment": "SERIAL API ver 4 added - START"
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_ABORT",
+      "value": "0x16",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RF_POWER_LEVEL_SET",
+      "value": "0x17",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_META",
+      "value": "0x18",
+      "comment": "SERIAL API ver 4 added - END"
+    },
+    {
+      "name": "FUNC_ID_ZW_RESERVED_SD",
+      "value": "0x19",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RESERVED_SDM",
+      "value": "0x1A",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RESERVED_SRI",
+      "value": "0x1B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_ROUTING_INFO",
+      "value": "0x1B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_RANDOM",
+      "value": "0x1C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RANDOM",
+      "value": "0x1D",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RF_POWER_LEVEL_REDISCOVERY_SET",
+      "value": "0x1E",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_MEMORY_GET_ID",
+      "value": "0x20",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_MEMORY_GET_BYTE",
+      "value": "0x21",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_MEMORY_PUT_BYTE",
+      "value": "0x22",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_MEMORY_GET_BUFFER",
+      "value": "0x23",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_MEMORY_PUT_BUFFER",
+      "value": "0x24",
+      "comment": "Unimplemented - START"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_GET_APPL_HOST_MEMORY_OFFSET",
+      "value": "0x25",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_DEBUG_OUTPUT",
+      "value": "0x26",
+      "comment": "Unimplemented - END"
+    },
+    {
+      "name": "FUNC_ID_AUTO_PROGRAMMING",
+      "value": "0x27",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVR_GET_VALUE",
+      "value": "0x28",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_GET_ID",
+      "value": "0x29",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_EXT_READ_LONG_BUFFER",
+      "value": "0x2A",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_EXT_WRITE_LONG_BUFFER",
+      "value": "0x2B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_EXT_READ_LONG_BYTE",
+      "value": "0x2C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_EXT_WRITE_LONG_BYTE",
+      "value": "0x2D",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_NVM_BACKUP_RESTORE",
+      "value": "0x2E",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NVR_GET_APP_VALUE",
+      "value": "0x2F",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_CLOCK_SET",
+      "value": "0x30",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_CLOCK_GET",
+      "value": "0x31",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_CLOCK_CMP",
+      "value": "0x32",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_RTC_TIMER_CREATE",
+      "value": "0x33",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_RTC_TIMER_READ",
+      "value": "0x34",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_RTC_TIMER_DELETE",
+      "value": "0x35",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_RTC_TIMER_CALL",
+      "value": "0x36",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_CLEAR_TX_TIMERS",
+      "value": "0x37",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_GET_TX_TIMERS",
+      "value": "0x38",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_CLEAR_NETWORK_STATS",
+      "value": "0x39",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_NETWORK_STATS",
+      "value": "0x3A",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_BACKGROUND_RSSI",
+      "value": "0x3B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_LISTEN_BEFORE_TALK_THRESHOLD",
+      "value": "0x3C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REMOVE_NODE_ID_FROM_NETWORK",
+      "value": "0x3F",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_LEARN_NODE_STATE",
+      "value": "0x40",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_NODE_PROTOCOL_INFO",
+      "value": "0x41",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_DEFAULT",
+      "value": "0x42",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NEW_CONTROLLER",
+      "value": "0x43",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REPLICATION_COMMAND_COMPLETE",
+      "value": "0x44",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REPLICATION_SEND_DATA",
+      "value": "0x45",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_ASSIGN_RETURN_ROUTE",
+      "value": "0x46",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_DELETE_RETURN_ROUTE",
+      "value": "0x47",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REQUEST_NODE_NEIGHBOR_UPDATE",
+      "value": "0x48",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_APPLICATION_UPDATE",
+      "value": "0x49",
+      "comment": "Obsolete use ZW_APPLICATION_UPDATE"
+    },
+    {
+      "name": "FUNC_ID_ZW_APPLICATION_CONTROLLER_UPDATE",
+      "value": "0x49",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_ADD_NODE_TO_NETWORK",
+      "value": "0x4A",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK",
+      "value": "0x4B",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_CREATE_NEW_PRIMARY",
+      "value": "0x4C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_CONTROLLER_CHANGE",
+      "value": "0x4D",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RESERVED_FN",
+      "value": "0x4E",
+      "comment": "Devkit 6.6x"
+    },
+    {
+      "name": "FUNC_ID_ZW_ASSIGN_PRIORITY_RETURN_ROUTE",
+      "value": "0x4F",
+      "comment": "Slave only"
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_LEARN_MODE",
+      "value": "0x50",
+      "comment": "Slave only end"
+    },
+    {
+      "name": "FUNC_ID_ZW_ASSIGN_SUC_RETURN_ROUTE",
+      "value": "0x51",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_ENABLE_SUC",
+      "value": "0x52",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REQUEST_NETWORK_UPDATE",
+      "value": "0x53",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_SUC_NODE_ID",
+      "value": "0x54",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_DELETE_SUC_RETURN_ROUTE",
+      "value": "0x55",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_SUC_NODE_ID",
+      "value": "0x56",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_SUC_ID",
+      "value": "0x57",
+      "comment": "Devkit 6.6x"
+    },
+    {
+      "name": "FUNC_ID_ZW_ASSIGN_PRIORITY_SUC_RETURN_ROUTE",
+      "value": "0x58",
+      "comment": "Obsolete - Not available in devkit 6.6x+"
+    },
+    {
+      "name": "FUNC_ID_ZW_REDISCOVERY_NEEDED",
+      "value": "0x59",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REQUEST_NODE_NEIGHBOR_UPDATE_OPTION",
+      "value": "0x5A",
+      "comment": "Slave only"
+    },
+    {
+      "name": "FUNC_ID_ZW_SUPPORT9600_ONLY",
+      "value": "0x5B",
+      "comment": "Slave only end"
+    },
+    {
+      "name": "FUNC_ID_ZW_REQUEST_NEW_ROUTE_DESTINATIONS",
+      "value": "0x5C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_IS_NODE_WITHIN_DIRECT_RANGE",
+      "value": "0x5D",
+      "comment": "Enhanced/Routing Slave only end"
+    },
+    {
+      "name": "FUNC_ID_ZW_EXPLORE_REQUEST_INCLUSION",
+      "value": "0x5E",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_EXPLORE_REQUEST_EXCLUSION",
+      "value": "0x5F",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REQUEST_NODE_INFO",
+      "value": "0x60",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REMOVE_FAILED_NODE_ID",
+      "value": "0x61",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_IS_FAILED_NODE_ID",
+      "value": "0x62",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_REPLACE_FAILED_NODE",
+      "value": "0x63",
+      "comment": "In 6.0x the function id was wrong so we need to support this wrong function id as well in the future"
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_ROUTING_MAX_6_00",
+      "value": "0x65",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_IS_PRIMARY_CTRL",
+      "value": "0x66",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_AES_ECB",
+      "value": "0x67",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_TIMER_START",
+      "value": "0x70",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_TIMER_RESTART",
+      "value": "0x71",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_TIMER_CANCEL",
+      "value": "0x72",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_TIMER_CALL",
+      "value": "0x73",
+      "comment": "Firmware Update API"
+    },
+    {
+      "name": "FUNC_ID_ZW_FIRMWARE_UPDATE_NVM",
+      "value": "0x78",
+      "comment": "Installer API"
+    },
+    {
+      "name": "FUNC_ID_GET_ROUTING_TABLE_LINE",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_GET_TX_COUNTER",
+      "value": "0x81",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_RESET_TX_COUNTER",
+      "value": "0x82",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_STORE_NODEINFO",
+      "value": "0x83",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_STORE_HOMEID",
+      "value": "0x84",
+      "comment": "Installer API only end"
+    },
+    {
+      "name": "FUNC_ID_LOCK_ROUTE_RESPONSE",
+      "value": "0x90",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_ROUTE_DEMO",
+      "value": "0x91",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_PRIORITY_ROUTE",
+      "value": "0x92",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_PRIORITY_ROUTE",
+      "value": "0x93",
+      "comment": "NOTE: Obsoleted - BEGIN"
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_LAST_WORKING_ROUTE",
+      "value": "0x92",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_LAST_WORKING_ROUTE",
+      "value": "0x93",
+      "comment": "NOTE: Obsoleted - END"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_TEST",
+      "value": "0x95",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_EXT",
+      "value": "0x98",
+      "comment": "DevKit 6.7x introduced - slave_enhanced_232 and slave_routing only"
+    },
+    {
+      "name": "FUNC_ID_ZW_SECURITY_SETUP",
+      "value": "0x9C",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_APPLICATION_SECURITY_EVENT",
+      "value": "0x9D",
+      "comment": "ZW_CONTROLLER_BRIDGE only START"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_APPL_SLAVE_NODE_INFORMATION",
+      "value": "0xA0",
+      "comment": "OBSOLETE: In DevKit 4.5x/6.0x Controller Bridge applications, this is obsoleted"
+    },
+    {
+      "name": "FUNC_ID_APPLICATION_SLAVE_COMMAND_HANDLER",
+      "value": "0xA1",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_SLAVE_NODE_INFORMATION",
+      "value": "0xA2",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_SLAVE_DATA",
+      "value": "0xA3",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_SLAVE_LEARN_MODE",
+      "value": "0xA4",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_VIRTUAL_NODES",
+      "value": "0xA5",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_IS_VIRTUAL_NODE",
+      "value": "0xA6",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RESERVED_SSD",
+      "value": "0xA7",
+      "comment": "DevKit 4.5x/6.0x added - obsoletes FUNC_ID_APPLICATION_SLAVE_COMMAND_HANDLER and"
+    },
+    {
+      "name": "FUNC_ID_APPLICATION_COMMAND_HANDLER_BRIDGE",
+      "value": "0xA8",
+      "comment": "DevKit 4.5x/6.0x added - Adds sourceNodeID to the parameter list"
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_BRIDGE",
+      "value": "0xA9",
+      "comment": "Obsolete"
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_META_BRIDGE",
+      "value": "0xAA",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_DATA_MULTI_BRIDGE",
+      "value": "0xAB",
+      "comment": "ZW_CONTROLLER_BRIDGE only END"
+    },
+    {
+      "name": "FUNC_ID_PWR_SETSTOPMODE",
+      "value": "0xB0",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PWR_CLK_PD",
+      "value": "0xB1",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PWR_CLK_PUP",
+      "value": "0xB2",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PWR_SELECT_CLK",
+      "value": "0xB3",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_WUT_TIMEOUT",
+      "value": "0xB4",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_IS_WUT_KICKED",
+      "value": "0xB5",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_WATCHDOG_ENABLE",
+      "value": "0xB6",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_WATCHDOG_DISABLE",
+      "value": "0xB7",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_WATCHDOG_KICK",
+      "value": "0xB8",
+      "comment": "Obsolete use FUNC_ID_ZW_INT_EXT_LEVEL_SET"
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_EXT_INT_LEVEL",
+      "value": "0xB9",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_INT_EXT_LEVEL_SET",
+      "value": "0xB9",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_RF_POWER_LEVEL_GET",
+      "value": "0xBA",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_NEIGHBOR_COUNT",
+      "value": "0xBB",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_ARE_NODES_NEIGHBOURS",
+      "value": "0xBC",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_TYPE_LIBRARY",
+      "value": "0xBD",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SEND_TEST_FRAME",
+      "value": "0xBE",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_PROTOCOL_STATUS",
+      "value": "0xBF",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_PROMISCUOUS_MODE",
+      "value": "0xD0",
+      "comment": "SERIAL API ver 5 added - START"
+    },
+    {
+      "name": "FUNC_ID_PROMISCUOUS_APPLICATION_COMMAND_HANDLER",
+      "value": "0xD1",
+      "comment": "SERIAL API ver 5 added - END"
+    },
+    {
+      "name": "FUNC_ID_ZW_WATCHDOG_START",
+      "value": "0xD2",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_WATCHDOG_STOP",
+      "value": "0xD3",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_SET_ROUTING_MAX",
+      "value": "0xD4",
+      "comment": "Unimplemented - START"
+    },
+    {
+      "name": "FUNC_ID_ZW_GET_ROUTING_MAX",
+      "value": "0xD5",
+      "comment": "Unimplemented - END"
+    },
+    {
+      "name": "FUNC_ID_ZW_NETWORK_MANAGEMENT_SET_MAX_INCLUSION_REQUEST_INTERVALS",
+      "value": "0xD6",
+      "comment": "Allocated for NUNIT test"
+    },
+    {
+      "name": "FUNC_ID_ZW_NUNIT_CMD",
+      "value": "0xE0",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NUNIT_INIT",
+      "value": "0xE1",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NUNIT_LIST",
+      "value": "0xE2",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NUNIT_RUN",
+      "value": "0xE3",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_ZW_NUNIT_END",
+      "value": "0xE4",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_IO_PORT_STATUS",
+      "value": "0xE5",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_IO_PORT",
+      "value": "0xE6",
+      "comment": "Allocated for Power Management"
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_POWER_MANAGEMENT",
+      "value": "0xEE",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_SERIAL_API_READY",
+      "value": "0xEF",
+      "comment": "Allocated for proprietary serial API commands"
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_0",
+      "value": "0xF0",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_1",
+      "value": "0xF1",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_2",
+      "value": "0xF2",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_3",
+      "value": "0xF3",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_4",
+      "value": "0xF4",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_5",
+      "value": "0xF5",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_6",
+      "value": "0xF6",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_7",
+      "value": "0xF7",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_8",
+      "value": "0xF8",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_9",
+      "value": "0xF9",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_A",
+      "value": "0xFA",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_B",
+      "value": "0xFB",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_C",
+      "value": "0xFC",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_D",
+      "value": "0xFD",
+      "comment": ""
+    },
+    {
+      "name": "FUNC_ID_PROPRIETARY_E",
+      "value": "0xFE",
+      "comment": "Illegal function ID"
+    },
+    {
+      "name": "FUNC_ID_UNKNOWN",
+      "value": "0xFF",
+      "comment": ""
+    }
+  ],
+  "ZW_basis_api.h": [
+    {
+      "name": "ZW_PROTOCOL_STATUS_ROUTING",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_PROTOCOL_STATUS_SUC",
+      "value": "0x02",
+      "comment": "ZW_LIBRARY_TYPEs one of these defines are returned when requesting"
+    },
+    {
+      "name": "ZW_LIB_CONTROLLER_STATIC",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_CONTROLLER",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_SLAVE_ENHANCED",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_SLAVE",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_INSTALLER",
+      "value": "0x05",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_SLAVE_ROUTING",
+      "value": "0x06",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_CONTROLLER_BRIDGE",
+      "value": "0x07",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_DUT",
+      "value": "0x08",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_AVREMOTE",
+      "value": "0x0A",
+      "comment": ""
+    },
+    {
+      "name": "ZW_LIB_AVDEVICE",
+      "value": "0x0B",
+      "comment": "ZW_PROTOCOL_TYPE one of these are returned when requesting"
+    },
+    {
+      "name": "ZW_INT_MASK_EXT1",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_AV_VERSION_MAJOR",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "ZW_AV_VERSION_MINOR",
+      "value": "0",
+      "comment": ""
+    },
+    {
+      "name": "ZW_CHIP_TYPE",
+      "value": "5",
+      "comment": ""
+    },
+    {
+      "name": "ZW_CHIP_REVISION",
+      "value": "0",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_TX_MODE",
+      "value": "1",
+      "comment": "RF switch from Rx to Tx mode, the modualtor is satrted and the PA is on"
+    },
+    {
+      "name": "ZW_RF_RX_MODE",
+      "value": "2",
+      "comment": "RF switch from Tx to Rx mode, the demodulator is started"
+    },
+    {
+      "name": "ZW_RF_PA_ON",
+      "value": "4",
+      "comment": "RF is in Tx mode, the PA is turned on"
+    },
+    {
+      "name": "ZW_RF_PA_OFF",
+      "value": "8",
+      "comment": "RF is in Tx mode, the PA is turned off"
+    },
+    {
+      "name": "ZW_INT0",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_INT1",
+      "value": "0x01",
+      "comment": "**************************************************************************"
+    },
+    {
+      "name": "NUM_CHANNELS",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "NUM_CHANNELS",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "NUM_CHANNELS_2CH",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "NUM_CHANNELS_3CH",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "NUM_CHANNELS_MAX",
+      "value": "3",
+      "comment": "Node type structure used in ApplicationNodeInformation"
+    },
+    {
+      "name": "ZW_WAKEUP_RESET",
+      "value": "0",
+      "comment": "Wake up after HW Reset (RESET_N pin activation)"
+    },
+    {
+      "name": "ZW_WAKEUP_WUT",
+      "value": "1",
+      "comment": "Wake up by WUT timer"
+    },
+    {
+      "name": "ZW_WAKEUP_SENSOR",
+      "value": "2",
+      "comment": "Wake up by a Wakeup Beam"
+    },
+    {
+      "name": "ZW_WAKEUP_WATCHDOG",
+      "value": "3",
+      "comment": "Wake up after Watchdog Reset"
+    },
+    {
+      "name": "ZW_WAKEUP_EXT_INT",
+      "value": "4",
+      "comment": "Wake up by External INT"
+    },
+    {
+      "name": "ZW_WAKEUP_POR",
+      "value": "5",
+      "comment": "Wake up after Power On Reset"
+    },
+    {
+      "name": "ZW_WAKEUP_USB_SUSPEND",
+      "value": "6",
+      "comment": "Wake up by USB suspend"
+    },
+    {
+      "name": "ZW_WAKEUP_SMARTSTART",
+      "value": "7",
+      "comment": "Wake up in SMARTSTART"
+    },
+    {
+      "name": "APPLICATION_NODEINFO_NOT_LISTENING",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NODEINFO_LISTENING",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NODEINFO_OPTIONAL_FUNCTIONALITY",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_FREQ_LISTENING_MODE_1000ms",
+      "value": "0x10",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_FREQ_LISTENING_MODE_250ms",
+      "value": "0x20",
+      "comment": ""
+    }
+  ],
+  "ZW_controller_api.h": [
+    {
+      "name": "ADD_NODE_ANY",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_CONTROLLER",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_SLAVE",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_EXISTING",
+      "value": "4",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STOP",
+      "value": "5",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STOP_FAILED",
+      "value": "6",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_RESERVED",
+      "value": "7",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_HOME_ID",
+      "value": "8",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_SMART_START",
+      "value": "9",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_MODE_MASK",
+      "value": "0x0F",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_OPTION_NORMAL_POWER",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_OPTION_NETWORK_WIDE",
+      "value": "0x40",
+      "comment": "Callback states from ZW_AddNodeToNetwork"
+    },
+    {
+      "name": "ADD_NODE_STATUS_LEARN_READY",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_NODE_FOUND",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_ADDING_SLAVE",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_ADDING_CONTROLLER",
+      "value": "4",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_PROTOCOL_DONE",
+      "value": "5",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_DONE",
+      "value": "6",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_FAILED",
+      "value": "7",
+      "comment": ""
+    },
+    {
+      "name": "ADD_NODE_STATUS_NOT_PRIMARY",
+      "value": "0x23",
+      "comment": "Mode parameters to ZW_RemoveNodeFromNetwork/ZW_RemoveNodeIDFromNetwork"
+    },
+    {
+      "name": "REMOVE_NODE_ID_ANY",
+      "value": "0",
+      "comment": "Callback states from ZW_RemoveNodeFromNetwork/ZW_RemoveNodeIDFromNetwork"
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_DISABLE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_CLASSIC",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_NWI",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_NWE",
+      "value": "0x03",
+      "comment": "Callback states from ZW_SetLearnMode"
+    },
+    {
+      "name": "REQUEST_NEIGHBOR_UPDATE_STARTED",
+      "value": "0x21",
+      "comment": ""
+    },
+    {
+      "name": "REQUEST_NEIGHBOR_UPDATE_DONE",
+      "value": "0x22",
+      "comment": ""
+    },
+    {
+      "name": "REQUEST_NEIGHBOR_UPDATE_FAILED",
+      "value": "0x23",
+      "comment": "ApplicationcControllerUpdate status"
+    },
+    {
+      "name": "UPDATE_STATE_SUC_ID",
+      "value": "0x10",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_DELETE_DONE",
+      "value": "0x20",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NEW_ID_ASSIGNED",
+      "value": "0x40",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_ROUTING_PENDING",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NODE_INFO_REQ_FAILED",
+      "value": "0x81",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NODE_INFO_REQ_DONE",
+      "value": "0x82",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NOP_POWER_RECEIVED",
+      "value": "0x83",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NODE_INFO_RECEIVED",
+      "value": "0x84",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NODE_INFO_SMARTSTART_HOMEID_RECEIVED",
+      "value": "0x85",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_INCLUDED_NODE_INFO_RECEIVED",
+      "value": "0x86",
+      "comment": "ZW_GetNeighborCount special return values"
+    },
+    {
+      "name": "NEIGHBORS_ID_INVALID",
+      "value": "0xFE",
+      "comment": ""
+    },
+    {
+      "name": "NEIGHBORS_COUNT_FAILED",
+      "value": "0xFF",
+      "comment": "Could not access routing info try again later"
+    },
+    {
+      "name": "NOT_PRIMARY_CONTROLLER",
+      "value": "1",
+      "comment": "The removing process was"
+    },
+    {
+      "name": "NO_CALLBACK_FUNCTION",
+      "value": "2",
+      "comment": "The removing process was"
+    },
+    {
+      "name": "FAILED_NODE_NOT_FOUND",
+      "value": "3",
+      "comment": "The removing process aborted"
+    },
+    {
+      "name": "FAILED_NODE_REMOVE_PROCESS_BUSY",
+      "value": "4",
+      "comment": "The removing process is busy"
+    },
+    {
+      "name": "FAILED_NODE_REMOVE_FAIL",
+      "value": "5",
+      "comment": "The removing process could not"
+    },
+    {
+      "name": "ZW_FAILED_NODE_REMOVE_STARTED",
+      "value": "0",
+      "comment": "The removing/replacing failed node process started"
+    },
+    {
+      "name": "ZW_NODE_OK",
+      "value": "0",
+      "comment": "The node is working properly (removed from the failed nodes list )"
+    },
+    {
+      "name": "ZW_FAILED_NODE_REMOVED",
+      "value": "1",
+      "comment": "The failed node was removed from the failed nodes list"
+    },
+    {
+      "name": "ZW_FAILED_NODE_NOT_REMOVED",
+      "value": "2",
+      "comment": "The failed node was not removed from the failing nodes list"
+    },
+    {
+      "name": "ZW_FAILED_NODE_REPLACE",
+      "value": "3",
+      "comment": "The failed node are ready to be replaced and controller"
+    },
+    {
+      "name": "ZW_FAILED_NODE_REPLACE_DONE",
+      "value": "4",
+      "comment": "The failed node has been replaced"
+    },
+    {
+      "name": "ZW_FAILED_NODE_REPLACE_FAILED",
+      "value": "5",
+      "comment": "The failed node has not been replaced"
+    },
+    {
+      "name": "ZW_SUC_UPDATE_DONE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_UPDATE_ABORT",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_UPDATE_WAIT",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_UPDATE_DISABLED",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_UPDATE_OVERFLOW",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_SET_SUCCEEDED",
+      "value": "0x05",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SUC_SET_FAILED",
+      "value": "0x06",
+      "comment": "SUC capabilities used in ZW_SetSUCNodeID"
+    },
+    {
+      "name": "ZW_SUC_FUNC_NODEID_SERVER",
+      "value": "0x01",
+      "comment": "Defines for ZW_GetControllerCapabilities"
+    },
+    {
+      "name": "CONTROLLER_IS_SECONDARY",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "CONTROLLER_ON_OTHER_NETWORK",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "CONTROLLER_NODEID_SERVER_PRESENT",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "CONTROLLER_IS_REAL_PRIMARY",
+      "value": "0x08",
+      "comment": ""
+    },
+    {
+      "name": "CONTROLLER_IS_SUC",
+      "value": "0x10",
+      "comment": ""
+    },
+    {
+      "name": "NO_NODES_INCUDED",
+      "value": "0x20",
+      "comment": "Z-Wave RF speed definitions"
+    },
+    {
+      "name": "ZW_RF_SPEED_NONE",
+      "value": "0x0000",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_SPEED_9600",
+      "value": "0x0001",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_SPEED_40K",
+      "value": "0x0002",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_SPEED_100K",
+      "value": "0x0003",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_SPEED_MASK",
+      "value": "0x0007",
+      "comment": "ZW_GetRoutingInfo() options"
+    },
+    {
+      "name": "GET_ROUTING_INFO_REMOVE_BAD",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "GET_ROUTING_INFO_REMOVE_NON_REPS",
+      "value": "0x40",
+      "comment": ""
+    },
+    {
+      "name": "NODEINFO_LISTENING_SUPPORT",
+      "value": "0x80",
+      "comment": "Routing bit in the NODEINFO capability byte"
+    },
+    {
+      "name": "NODEINFO_ROUTING_SUPPORT",
+      "value": "0x40",
+      "comment": "Optional functionality bit in the NODEINFO security byte"
+    },
+    {
+      "name": "NODEINFO_OPTIONAL_FUNC_SUPPORT",
+      "value": "0x80",
+      "comment": "TO#1924 fix"
+    },
+    {
+      "name": "NODEINFO_ZWAVE_SENSOR_MODE_WAKEUP_1000",
+      "value": "0x40",
+      "comment": ""
+    },
+    {
+      "name": "NODEINFO_ZWAVE_SENSOR_MODE_WAKEUP_250",
+      "value": "0x20",
+      "comment": "Learn node state information passed by the call back function"
+    },
+    {
+      "name": "INIF_OPTIONS_TX_REASON_MASK",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_CONF_SIZE",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_REPEATER_0_INDEX",
+      "value": "0",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_REPEATER_1_INDEX",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_REPEATER_2_INDEX",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_REPEATER_3_INDEX",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "ROUTECACHE_LINE_CONF_INDEX",
+      "value": "4",
+      "comment": "ZW_GetPriorityRoute and ZW_SetPriorityRoute speed definitions"
+    },
+    {
+      "name": "ZW_PRIORITY_ROUTE_APP_PR",
+      "value": "0x10",
+      "comment": "Route returned is a Last Working Route - ZW_LWR"
+    },
+    {
+      "name": "ZW_PRIORITY_ROUTE_ZW_LWR",
+      "value": "0x01",
+      "comment": "Route returned is a Next to Last Working Route - ZW_NLWR"
+    },
+    {
+      "name": "ZW_PRIORITY_ROUTE_ZW_NLWR",
+      "value": "0x02",
+      "comment": "Obsolete - ZW_GetLastWorkingRoute and ZW_SetLastWorkingRoute speed definitions"
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_FAILED",
+      "value": "0xFF",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_SMART_START_IN_PROGRESS",
+      "value": "0xFE",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_TIMEOUT",
+      "value": "0xFD",
+      "comment": ""
+    }
+  ],
+  "ZW_controller_bridge_api.h": [
+    {
+      "name": "ASSIGN_COMPLETE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ASSIGN_NODEID_DONE",
+      "value": "0x01",
+      "comment": "Node ID have been assigned"
+    },
+    {
+      "name": "ASSIGN_RANGE_INFO_UPDATE",
+      "value": "0x02",
+      "comment": "Node is doing Neighbor discovery"
+    },
+    {
+      "name": "VIRTUAL_SLAVE_LEARN_MODE_DISABLE",
+      "value": "0x00",
+      "comment": "Enable SlaveLearnMode - Enable possibility for including/excluding a"
+    },
+    {
+      "name": "VIRTUAL_SLAVE_LEARN_MODE_ENABLE",
+      "value": "0x01",
+      "comment": "Add new Virtual Slave node if possible"
+    },
+    {
+      "name": "VIRTUAL_SLAVE_LEARN_MODE_ADD",
+      "value": "0x02",
+      "comment": "Remove existing Virtual Slave node"
+    },
+    {
+      "name": "VIRTUAL_SLAVE_LEARN_MODE_REMOVE",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "MULTI_DEST_MASK_LEN_MASK",
+      "value": "0x1F",
+      "comment": "Mask masking the nodeID-1 represented by the first bit in the first byte"
+    },
+    {
+      "name": "MULTI_DEST_MASK_OFFSET_MASK",
+      "value": "0xE0",
+      "comment": ""
+    }
+  ],
+  "ZW_firmware_bootloader_defs.h": [
+    {
+      "name": "FIRMWARE_MCU_SIZE",
+      "value": "0x20000",
+      "comment": "A MCU flash BANK is 32kbytes"
+    },
+    {
+      "name": "MCU_BANK_SIZE",
+      "value": "0x8000",
+      "comment": "Bootloader occupies the first 6kbytes in the MCU address space"
+    },
+    {
+      "name": "FIRMWARE_BOOTLOADER_SIZE",
+      "value": "0x1800",
+      "comment": "Firmware boot/start address"
+    },
+    {
+      "name": "NVM_SIZE_1MBIT",
+      "value": "0x20000",
+      "comment": "NVM offset for the New Firmware Image present indicator"
+    },
+    {
+      "name": "NVM_SIZE_2MBIT",
+      "value": "0x40000",
+      "comment": ""
+    },
+    {
+      "name": "NVM_SIZE_4MBIT",
+      "value": "0x80000",
+      "comment": ""
+    },
+    {
+      "name": "NVM_SIZE_8MBIT",
+      "value": "0x100000",
+      "comment": ""
+    },
+    {
+      "name": "NVM_SIZE_16MBIT",
+      "value": "0x200000",
+      "comment": "Firmware Image address offset of the first byte written/read in the NVM firmware COMMON area"
+    }
+  ],
+  "ZW_firmware_update_nvm_api.h": [
+    {
+      "name": "NVM_FIRMWARE_UPDATE_NOT_SUPPORTED",
+      "value": "0",
+      "comment": ""
+    },
+    {
+      "name": "NVM_FIRMWARE_UPDATE_SUPPORTED",
+      "value": "1",
+      "comment": "FirmwareUpdate NEWIMAGE definitions - Use when calling ZW_FirmwareUpdate_NVM_Set_NEWIMAGE"
+    }
+  ],
+  "ZW_flash_api.h": [
+    {
+      "name": "FLASH_STATE_DONE",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "FLASH_STATE_LOCK",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "FLASH_STATE_ERR",
+      "value": "0x01",
+      "comment": "*************************************************************************"
+    }
+  ],
+  "ZW_ota_compression_header.h": [
+    {
+      "name": "COMPRESSION_HEADER_TYPE_V1",
+      "value": "0x80",
+      "comment": "V1 using FastLZ compression. Arbitrary numbering, not starting from zero because NVM could be initialized to that value"
+    },
+    {
+      "name": "COMPRESSED_FIRMWARE_HEADER_PACKED_LENGTH",
+      "value": "27",
+      "comment": ""
+    }
+  ],
+  "ZW_security_api.h": [
+    {
+      "name": "SECURITY_KEY_S2_UNAUTHENTICATED_BIT",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_S2_AUTHENTICATED_BIT",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_S2_ACCESS_BIT",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_S0_BIT",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_NONE_MASK",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_S2_PUBLIC_DSK_LENGTH",
+      "value": "16",
+      "comment": ""
+    },
+    {
+      "name": "SECURITY_KEY_S2_PUBLIC_CSA_DSK_LENGTH",
+      "value": "4",
+      "comment": ""
+    }
+  ],
+  "ZW_slave_api.h": [
+    {
+      "name": "UPDATE_STATE_NODE_INFO_RECEIVED",
+      "value": "0x84",
+      "comment": ""
+    },
+    {
+      "name": "UPDATE_STATE_NOP_POWER_RECEIVED",
+      "value": "0x83",
+      "comment": "Defines used to handle inclusion and exclusion of node"
+    },
+    {
+      "name": "ASSIGN_COMPLETE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ASSIGN_NODEID_DONE",
+      "value": "0x01",
+      "comment": "Node ID have been assigned"
+    },
+    {
+      "name": "ASSIGN_RANGE_INFO_UPDATE",
+      "value": "0x02",
+      "comment": "Node is doing Neighbor discovery"
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_DISABLE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_CLASSIC",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_NWI",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_SET_LEARN_MODE_NWE",
+      "value": "0x03",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_FAILED",
+      "value": "0xFF",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_SMART_START_IN_PROGRESS",
+      "value": "0xFE",
+      "comment": ""
+    },
+    {
+      "name": "APPLICATION_NETWORK_LEARN_MODE_COMPLETED_TIMEOUT",
+      "value": "0xFD",
+      "comment": ""
+    }
+  ],
+  "ZW_slave_routing_api.h": [
+    {
+      "name": "ZW_ROUTE_UPDATE_DONE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_ROUTE_UPDATE_ABORT",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "ZW_ROUTE_UPDATE_WAIT",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "ZW_ROUTE_UPDATE_DISABLED",
+      "value": "0x03",
+      "comment": ""
+    }
+  ],
+  "ZW_transport_api.h": [
+    {
+      "name": "ZW_MAX_NODES",
+      "value": "232",
+      "comment": "**********************************************************"
+    },
+    {
+      "name": "NODEPARM_MAX",
+      "value": "35",
+      "comment": "max. number of parameters"
+    },
+    {
+      "name": "TRANSMIT_OPTION_ACK",
+      "value": "0x01",
+      "comment": "request acknowledge from destination node"
+    },
+    {
+      "name": "TRANSMIT_OPTION_LOW_POWER",
+      "value": "0x02",
+      "comment": "transmit at low output power level (1/3 of normal RF range)"
+    },
+    {
+      "name": "TRANSMIT_OPTION_MULTICAST_AS_BROADCAST",
+      "value": "0x02",
+      "comment": "The multicast frame should be send as a broadcast"
+    },
+    {
+      "name": "TRANSMIT_OPTION_RETURN_ROUTE",
+      "value": "0x04",
+      "comment": "request transmission via return route"
+    },
+    {
+      "name": "TRANSMIT_OPTION_AUTO_ROUTE",
+      "value": "0x04",
+      "comment": "request retransmission via repeater nodes"
+    },
+    {
+      "name": "TRANSMIT_OPTION_NO_ROUTE",
+      "value": "0x10",
+      "comment": "Use explore frame if needed"
+    },
+    {
+      "name": "TRANSMIT_OPTION_EXPLORE",
+      "value": "0x20",
+      "comment": "Transmit frame option flag which are valid when sending explore frames"
+    },
+    {
+      "name": "TRANSMIT_OPTION_2_TRANSPORT_SERVICE",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "TRANSMIT_OPTION_2_FOLLOWUP",
+      "value": "0x08",
+      "comment": "Received frame status flags"
+    },
+    {
+      "name": "RECEIVE_STATUS_ROUTED_BUSY",
+      "value": "0x01",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_LOW_POWER",
+      "value": "0x02",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_TYPE_MASK",
+      "value": "0x0C",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_TYPE_SINGLE",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_TYPE_BROAD",
+      "value": "0x04",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_TYPE_MULTI",
+      "value": "0x08",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_TYPE_EXPLORE",
+      "value": "0x10",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_FOREIGN_FRAME",
+      "value": "0x40",
+      "comment": ""
+    },
+    {
+      "name": "RECEIVE_STATUS_FOREIGN_HOMEID",
+      "value": "0x80",
+      "comment": ""
+    },
+    {
+      "name": "NODE_BROADCAST",
+      "value": "0xFF",
+      "comment": "broadcast"
+    },
+    {
+      "name": "ZW_TEST_NOT_A_NODEID",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "TRANSMIT_COMPLETE_OK",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "TRANSMIT_COMPLETE_NO_ACK",
+      "value": "0x01",
+      "comment": "retransmission error"
+    },
+    {
+      "name": "TRANSMIT_COMPLETE_FAIL",
+      "value": "0x02",
+      "comment": "transmit error"
+    },
+    {
+      "name": "TRANSMIT_ROUTING_NOT_IDLE",
+      "value": "0x03",
+      "comment": "transmit error"
+    },
+    {
+      "name": "TRANSMIT_COMPLETE_NOROUTE",
+      "value": "0x04",
+      "comment": "no route found in assignroute"
+    },
+    {
+      "name": "TRANSMIT_COMPLETE_VERIFIED",
+      "value": "0x05",
+      "comment": "Verified delivery"
+    },
+    {
+      "name": "ZW_ROUTE_LOST_FAILED",
+      "value": "0x04",
+      "comment": "Node Asked wont help us"
+    },
+    {
+      "name": "ZW_ROUTE_LOST_ACCEPT",
+      "value": "0x05",
+      "comment": "Accepted to help"
+    },
+    {
+      "name": "TRANSMIT_ROUTED_ATTEMPT",
+      "value": "0x08",
+      "comment": ""
+    },
+    {
+      "name": "ZW_MAX_CACHED_RETURN_ROUTE_DESTINATIONS",
+      "value": "5",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_TEST_SIGNAL_CARRIER",
+      "value": "0x00",
+      "comment": ""
+    },
+    {
+      "name": "ZW_RF_TEST_SIGNAL_CARRIER_MODULATED",
+      "value": "0x01",
+      "comment": "Max hops in route"
+    },
+    {
+      "name": "MAX_REPEATERS",
+      "value": "4",
+      "comment": "TX_STATUS_TYPE Last Used Route array size definitions"
+    },
+    {
+      "name": "LAST_USED_ROUTE_CONF_SIZE",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "LAST_USED_ROUTE_REPEATER_0_INDEX",
+      "value": "0",
+      "comment": ""
+    },
+    {
+      "name": "LAST_USED_ROUTE_REPEATER_1_INDEX",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "LAST_USED_ROUTE_REPEATER_2_INDEX",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "LAST_USED_ROUTE_REPEATER_3_INDEX",
+      "value": "3",
+      "comment": ""
+    },
+    {
+      "name": "LAST_USED_ROUTE_CONF_INDEX",
+      "value": "4",
+      "comment": "RSSI feedback constants"
+    },
+    {
+      "name": "RSSI_NOT_AVAILABLE",
+      "value": "127",
+      "comment": "RSSI measurement not available"
+    },
+    {
+      "name": "RSSI_MAX_POWER_SATURATED",
+      "value": "126",
+      "comment": "Receiver saturated. RSSI too high to measure precisely."
+    },
+    {
+      "name": "RSSI_BELOW_SENSITIVITY",
+      "value": "125",
+      "comment": "No signal detected. The RSSI is too low to measure precisely."
+    },
+    {
+      "name": "RSSI_RESERVED_START",
+      "value": "11",
+      "comment": ""
+    },
+    {
+      "name": "S2_TXOPTION_VERIFY_DELIVERY",
+      "value": "1",
+      "comment": ""
+    },
+    {
+      "name": "S2_TXOPTION_SINGLECAST_FOLLOWUP",
+      "value": "2",
+      "comment": ""
+    },
+    {
+      "name": "S2_TXOPTION_FIRST_SINGLECAST_FOLLOWUP",
+      "value": "4",
+      "comment": "Transmit options for ZW_SendDataEx"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "title": "1.1 Purpose",
+    "content": "<!-- PAGE 4 -->\n\n## **Table of Contents**\n\n**1** **INTRODUCTION .......................................................................................................................... 3**\n\n\n1.1 Purpose .............................................................................................................................................. 3\n\n\n**2** **TEST SPECIFICATION ................................................................................................................... 4**\n\n\n2.1 Multi Channel node interview ............................................................................................................ 4\n\n2.1.1 References ............................................................................................................................... 4\n\n2.1.2 Pre-requisites ........................................................................................................................... 4\n\n2.1.3 Test procedure ......................................................................................................................... 4\n\n\n**3** **REFERENCES ............................................................................................................................... 5**\n\n\n**1** **Introduction**\n\n\n**1.1** **Purpose**\n\n\nThis document describes the list of tests to perform in order to verify compliance with the Z-Wave\n\nCommand Class Control Specification.\n\n\n© 2021 Z-Wave Alliance, Inc., All Rights Reserved. This document may only be copied and distributed internally. PAGE 3",
+    "pdf_name": "test_cc_control",
+    "section_number": "2",
+    "page_start": 4,
+    "page_end": 4
+  },
+  {
+    "title": "2.1 Multi Channel node interview",
+    "content": "<!-- PAGE 5 -->\n\n**2** **Test Specification**\n\n\n**2.1** **Multi Channel node interview**\n\n\nThis test verifies that a controlling node interview a Multi Channel supporting Node correctly.\n\n\n**2.1.1** **References**\n\n\nThis test verifies the following requirements:\n\n\n  - CL:0060.01.21.01.2\n\n\n**2.1.2** **Pre-requisites**\n\n\nNone.\n\n\n**2.1.3** **Test procedure**\n\n\n\n\n\n\n|TestProcedure|Col2|Col3|\n|---|---|---|\n|**Step**|**Action**|**Result verification**|\n|1|Include a Multi Channel supporting test<br>node (e.g. PowerStrip or CTT v3<br>emulated node) into the DUT’s network.<br>If the DUT cannot include other nodes<br>into its network, find it how to trigger a<br>Multi Channel interview of a node<br>already included.|Verify using a Zniffer tool that the number of<br>individual endpoints is requested,<br>Verify that the secure and non-secure capabilities<br>of each individual endpoints are requested.|\n|2|If the DUT controls application command<br>classes supported by the test node’s<br>endpoints|Verify that each application command class can<br>be controlled for each individual endpoint.|\n|3|Repeat steps 1-2 for a non-secure<br>inclusion and a inclusion that grants only<br>the S0 security class.|Verify that the non-secure/secure capabilities are<br>requested following the highest granted key of<br>the node.|\n\n\n\n© 2021 Z-Wave Alliance, Inc., All Rights Reserved. This document may only be copied and distributed internally. PAGE 4",
+    "pdf_name": "test_cc_control",
+    "section_number": "4",
+    "page_start": 5,
+    "page_end": 5
+  },
+  {
+    "title": "3 References",
+    "content": "<!-- PAGE 6 -->\n\n**3** **References**\n\n\n[1] IETF RFC 2119, Key words for use in RFC’s to Indicate Requirement Levels,\n[http://tools.ietf.org/pdf/rfc2119.pdf](http://tools.ietf.org/pdf/rfc2119.pdf)\n\n\n[2] Z-Wave Alliance, Z-Wave Plus v2 Device Type Specification.\n\n\n© 2021 Z-Wave Alliance, Inc., All Rights Reserved. This document may only be copied and distributed internally. PAGE 5",
+    "pdf_name": "test_cc_control",
+    "section_number": "5",
+    "page_start": 6,
+    "page_end": 6
+  }
+]
